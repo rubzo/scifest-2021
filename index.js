@@ -1,4 +1,5 @@
 // Configurable?
+let NUM_TISSUES = 3;
 let TISSUE_WIDTH = 5;
 let TISSUE_HEIGHT = 8;
 let NUM_INITIAL_VIRUS_ATTRS = 2;
@@ -10,9 +11,6 @@ let lungCellsDiv = null;
 let heartCellsDiv = null;
 let gridDivs = [];
 
-// Game state related vars
-let gameState = null;
-
 // General helpers
 function randomN(n) {
     return Math.floor(Math.random() * n);
@@ -22,20 +20,67 @@ function randomElement(ar) {
     return ar[randomN(ar.length)];
 }
 
+// Game state related vars
+let gameState = null;
+
 // Game state related functions
+const CellStates = {
+    CLEAN: 1,
+    INFECTED: 2,
+}
+
+const PlayStates = {
+    //
+    // TODO!!! Need to split some of these up into PRE - ACTIVE - POST stages
+    //
+    PICKING_INITIAL_VIRUS_TRAITS: 1,
+    // -> PICKING_INITIAL_IMMUNE_TRAITS
+    PICKING_INITIAL_IMMUNE_TRAITS: 2,
+    // -> ASSIGNING_INITIAL_IMMUNE_TRAITS
+    ASSIGNING_INITIAL_IMMUNE_TRAITS: 3,
+    // -> VIRUS_MOVING_ON_ROW
+    VIRUS_MOVING_ON_ROW: 4,
+    // -> PLAYER_REACTION
+    PLAYER_REACTION: 5,
+    // -> VIRUS_MUTATION
+    VIRUS_MUTATION: 6,
+    // -> VIRUS_MOVES_DOWN
+    VIRUS_MOVES_DOWN: 7,
+    // -> VIRUS_MOVING_ON_ROW
+    // -> BODY_DEFEATED
+    // -> VIRUS_DEFEATED
+    BODY_DEFEATED: 8,
+    VIRUS_DEFEATED: 9,
+}
+
+class Cell {
+    constructor() {
+        this.state = CellStates.CLEAN;
+        this.attribute = null;
+    }
+
+    markInfected() {
+        this.state = CellStates.INFECTED;
+    }
+
+    isInfected() {
+        return this.state === CellStates.INFECTED;
+    }
+};
+
 function generateGameStateGrid() {
     let grid = [];
     for (let row = 0; row < TISSUE_HEIGHT; row++) {
         grid.push([]);
-        for (let column = 0; column < (TISSUE_WIDTH * 3); column++) {
-            grid[row].push(null);
+        for (let column = 0; column < (TISSUE_WIDTH * NUM_TISSUES); column++) {
+            grid[row].push(new Cell());
         }
     }
     return grid;
 }
 
 function placeVirusOnGrid(row, column) {
-    gameState.grid[row][column] = "V";
+    gameState.grid[row][column].markInfected();
 }
 
 function generateInitialVirusAttributes() {
@@ -83,23 +128,37 @@ function placeVirusBasedOnAttributes() {
             loc = (TISSUE_WIDTH * 2) + randomN(TISSUE_WIDTH);
             break;
     }
-    console.log(loc);
     placeVirusOnGrid(0, loc);
+}
+
+function switchPlayState(newState) {
+    // TODO: checking state transitions are valid
+    gameState.state = newState;
 }
 
 function setupGame() {
     gameState = {
         grid: generateGameStateGrid(),
         turn: 1,
-        virusAttributes: generateInitialVirusAttributes(),
-        immuneAttributes: generateInitialImmuneAttributes(),
+        virusAttributes: [],
+        immuneAttributes: [],
+        state: PlayStates.PICKING_INITIAL_VIRUS_TRAITS,
     }
 
+    gameState.virusAttributes = generateInitialVirusAttributes();
     placeVirusBasedOnAttributes();
 
+    switchPlayState(PlayStates.PICKING_INITIAL_IMMUNE_TRAITS);
+
+    gameState.immuneAttributes = generateInitialImmuneAttributes();
+    switchPlayState(PlayStates.ASSIGNING_INITIAL_IMMUNE_TRAITS);
+
+    switchPlayState(PlayStates.VIRUS_MOVING_ON_ROW);
 }
 
+// ******************************
 // Game presentation related vars
+// ******************************
 function hookupDivs() {
     mainGridDiv = $("#mainGrid")
     liverCellsDiv = $("#liverCells")
@@ -124,21 +183,27 @@ function generateGrid(cellsGridDiv, tissueIndex) {
 
 function updateGridView() {
     for (let row = 0; row < TISSUE_HEIGHT; row++) {
-        for (let column = 0; column < (TISSUE_WIDTH * 3); column++) {
-            if (gameState.grid[row][column] === null) {
-                gridDivs[row][column].html('<span class="nogrow">.</span>');
-            } else {
-                gridDivs[row][column].html('<span class="nogrow">V</span>');
+        for (let column = 0; column < (TISSUE_WIDTH * NUM_TISSUES); column++) {
+            let cellText = ".";
+            if (gameState.grid[row][column].isInfected()) {
+                cellText = "V";
             }
+            gridDivs[row][column].html(`<span class="nogrow">${cellText}</span>`);
         }
     }
 }
 
 function updateInfoPanels() {
-    $("#infoPaneList").empty();
+    $("#virusCardPanel").empty();
     gameState.virusAttributes.forEach(function (item, _) {
         // TODO: turn this into something that renders the card for the attribute
-        $("#infoPaneList").append($(`<div>${item.name}</div>`))
+        $("#virusCardPanel").append($(`<div>${item.name}</div>`))
+    });
+
+    $("#immuneCardPanel").empty();
+    gameState.immuneAttributes.forEach(function (item, _) {
+        // TODO: turn this into something that renders the card for the attribute
+        $("#immuneCardPanel").append($(`<div>${item.name}</div>`))
     });
 }
 
