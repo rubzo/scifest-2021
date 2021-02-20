@@ -16,6 +16,10 @@ function randomN(n) {
     return Math.floor(Math.random() * n);
 }
 
+function coinFlip() {
+    return randomN(2) == 0;
+}
+
 function randomElement(ar) {
     return ar[randomN(ar.length)];
 }
@@ -39,14 +43,18 @@ const PlayStates = {
     // -> ASSIGNING_INITIAL_IMMUNE_TRAITS
     ASSIGNING_INITIAL_IMMUNE_TRAITS: 3,
     // -> VIRUS_MOVING_ON_ROW
-    VIRUS_MOVING_ON_ROW: 4,
+    VIRUS_MOVING_ON_ROW_READY: 41,
+    // -> VIRUS_MOVING_ON_ROW_ACTIVE
+    VIRUS_MOVING_ON_ROW_ACTIVE: 42,
+    // -> VIRUS_MOVING_ON_ROW_DONE
+    VIRUS_MOVING_ON_ROW_DONE: 43,
     // -> PLAYER_REACTION
     PLAYER_REACTION: 5,
     // -> VIRUS_MUTATION
     VIRUS_MUTATION: 6,
     // -> VIRUS_MOVES_DOWN
     VIRUS_MOVES_DOWN: 7,
-    // -> VIRUS_MOVING_ON_ROW
+    // -> VIRUS_MOVING_ON_ROW_READY
     // -> BODY_DEFEATED
     // -> VIRUS_DEFEATED
     BODY_DEFEATED: 8,
@@ -56,6 +64,7 @@ const PlayStates = {
 class Cell {
     constructor() {
         this.state = CellStates.CLEAN;
+        // This indicates that an immunity card is affecting this cell.
         this.attribute = null;
     }
 
@@ -65,6 +74,10 @@ class Cell {
 
     isInfected() {
         return this.state === CellStates.INFECTED;
+    }
+
+    isClean() {
+        return this.state === CellStates.CLEAN;
     }
 };
 
@@ -81,6 +94,51 @@ function generateGameStateGrid() {
 
 function placeVirusOnGrid(row, column) {
     gameState.grid[row][column].markInfected();
+}
+
+function spawnVirusAt(row, column) {
+    placeVirusOnGrid(row, column);
+    toastMessage("Virus has replicated!");
+}
+
+function areAnyCellsInRowClean(row) {
+    let cleanCells = gameState.grid[row].filter(cell => cell.isClean());
+    return cleanCells.length > 0;
+}
+
+function findValidVirusSpawnPoints() {
+    // Can only spawn within the valid tissue?
+    let tropismAttr = gameState.virusAttributes.filter(attr => attr.kind == "Tropism")[0];
+    let start = 0;
+    let end = 0;
+    switch (tropismAttr.name) {
+        case "Liver Tropism":
+            start = 0;
+            end = start + TISSUE_WIDTH;
+            break;
+        case "Lung Tropism":
+            start = TISSUE_WIDTH;
+            end = start + TISSUE_WIDTH;
+            break;
+        case "Heart Tropism":
+            start = TISSUE_WIDTH * 2;
+            end = start + TISSUE_WIDTH;
+            break;
+    }
+
+    let validIndices = [];
+    let row = gameState.replicationRow;
+    for (let column = start; column < end; column++) {
+        if (gameState.grid[row][column].isClean()) {
+            if (column != 0 && gameState.grid[row][column - 1].isInfected()) {
+                validIndices.push(column);
+            } else if (column != ((TISSUE_WIDTH * NUM_TISSUES) - 1)
+                && gameState.grid[row][column + 1].isInfected()) {
+                validIndices.push(column);
+            }
+        }
+    }
+    return validIndices;
 }
 
 function generateInitialVirusAttributes() {
@@ -111,7 +169,7 @@ function generateInitialVirusAttributes() {
 }
 
 function generateInitialImmuneAttributes() {
-    return;
+    return [];
 }
 
 function placeVirusBasedOnAttributes() {
@@ -143,6 +201,7 @@ function setupGame() {
         virusAttributes: [],
         immuneAttributes: [],
         state: PlayStates.PICKING_INITIAL_VIRUS_TRAITS,
+        replicationRow: 0,
     }
 
     gameState.virusAttributes = generateInitialVirusAttributes();
@@ -153,7 +212,63 @@ function setupGame() {
     gameState.immuneAttributes = generateInitialImmuneAttributes();
     switchPlayState(PlayStates.ASSIGNING_INITIAL_IMMUNE_TRAITS);
 
-    switchPlayState(PlayStates.VIRUS_MOVING_ON_ROW);
+    switchPlayState(PlayStates.VIRUS_MOVING_ON_ROW_READY);
+
+    continueBasedOnCurrentState();
+}
+
+function finishedHandlingState() {
+    setTimeout(continueBasedOnCurrentState, 3000);
+}
+
+function continueBasedOnCurrentState() {
+    switch (gameState.state) {
+        case PlayStates.VIRUS_MOVING_ON_ROW_READY:
+            handleVirusMovingOnRowReady();
+            break;
+        case PlayStates.VIRUS_MOVING_ON_ROW_ACTIVE:
+            handleVirusMovingOnRowActive();
+            break;
+        case PlayStates.VIRUS_MOVING_ON_ROW_DONE:
+            handleVirusMovingOnRowDone();
+            break;
+    }
+}
+
+function handleVirusMovingOnRowReady() {
+    gameState.replicationAttempts = 0;
+    switchPlayState(PlayStates.VIRUS_MOVING_ON_ROW_ACTIVE);
+    toastMessage("Virus is trying to replicate!");
+    finishedHandlingState();
+}
+
+function handleVirusMovingOnRowActive() {
+    let replicationAttr = gameState.virusAttributes.filter(attr => attr.kind == "Replication Speed")[0];
+    if (gameState.replicationAttempts == replicationAttr.arg1) {
+        switchPlayState(PlayStates.VIRUS_MOVING_ON_ROW_DONE);
+    } else {
+        if (!areAnyCellsInRowClean(gameState.replicationRow)) {
+            switchPlayState(PlayStates.VIRUS_MOVING_ON_ROW_DONE);
+        } else {
+            if (coinFlip()) {
+                let virusSpawnPoints = findValidVirusSpawnPoints();
+                if (virusSpawnPoints.length != 0) {
+                    let newSpawnLoc = randomElement(virusSpawnPoints);
+                    spawnVirusAt(gameState.replicationRow, newSpawnLoc);
+                }
+            }
+            gameState.replicationAttempts++;
+            updateUI();
+        }
+    }
+    finishedHandlingState();
+}
+
+function handleVirusMovingOnRowDone() {
+    gameState.replicationAttempts = 0;
+    switchPlayState(PlayStates.PLAYER_REACTION);
+    toastMessage("Virus has finished trying to replicate!");
+    finishedHandlingState();
 }
 
 // ******************************
@@ -184,9 +299,9 @@ function generateGrid(cellsGridDiv, tissueIndex) {
 function updateGridView() {
     for (let row = 0; row < TISSUE_HEIGHT; row++) {
         for (let column = 0; column < (TISSUE_WIDTH * NUM_TISSUES); column++) {
-            let cellText = ".";
+            let cellText = "&nbsp;";
             if (gameState.grid[row][column].isInfected()) {
-                cellText = "V";
+                cellText = "X";
             }
             gridDivs[row][column].html(`<span class="nogrow">${cellText}</span>`);
         }
@@ -216,6 +331,18 @@ function hookupHandlers() {
 
 }
 
+function toastMessage(msg, dur) {
+    if (dur === undefined) {
+        dur = 1400;
+    }
+    $("#snackbar").text(msg);
+    $("#snackbar").addClass("show")
+    setTimeout(function () {
+        $("#snackbar").removeClass("show");
+    }, dur);
+
+}
+
 // OnLoad
 function onLoad() {
     hookupDivs();
@@ -234,9 +361,10 @@ $(document).ready(onLoad);
 
 // Virus Attributes
 class VirusAttribute {
-    constructor(name, kind) {
+    constructor(name, kind, arg1) {
         this.name = name;
         this.kind = kind;
+        this.arg1 = arg1;
     }
 }
 
@@ -256,19 +384,24 @@ let virusKindRules = {
 let virusAttributePool = {
     "replication-speed-1": new VirusAttribute(
         "Very Slow Replication Speed",
-        "Replication Speed"),
+        "Replication Speed",
+        1),
     "replication-speed-2": new VirusAttribute(
         "Slow Replication Speed",
-        "Replication Speed"),
+        "Replication Speed",
+        2),
     "replication-speed-3": new VirusAttribute(
         "Medium Replication Speed",
-        "Replication Speed"),
+        "Replication Speed",
+        3),
     "replication-speed-4": new VirusAttribute(
         "Fast Replication Speed",
-        "Replication Speed"),
+        "Replication Speed",
+        4),
     "replication-speed-5": new VirusAttribute(
         "Very Fast Replication Speed",
-        "Replication Speed"),
+        "Replication Speed",
+        5),
     "liver-tropism": new VirusAttribute(
         "Liver Tropism",
         "Tropism"),
