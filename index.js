@@ -34,39 +34,46 @@ const CellStates = {
 }
 
 const PlayStates = {
-    //
-    // TODO!!! Need to split some of these up into PRE - ACTIVE - POST stages
-    //
     PICKING_INITIAL_VIRUS_TRAITS: 1,
     // -> PICKING_INITIAL_IMMUNE_TRAITS
     PICKING_INITIAL_IMMUNE_TRAITS: 2,
     // -> ASSIGNING_INITIAL_IMMUNE_TRAITS
     ASSIGNING_INITIAL_IMMUNE_TRAITS: 3,
-    // -> VIRUS_MOVING_ON_ROW
-    VIRUS_MOVING_ON_ROW_READY: 41,
-    // -> VIRUS_MOVING_ON_ROW_ACTIVE
-    VIRUS_MOVING_ON_ROW_ACTIVE: 42,
-    // -> VIRUS_MOVING_ON_ROW_DONE
-    VIRUS_MOVING_ON_ROW_DONE: 43,
+    // -> VIRUS_MOVES_SIDEWAYS_READY
+
+    VIRUS_MOVES_SIDEWAYS_READY: 41,
+    // -> VIRUS_MOVES_SIDEWAYS_ACTIVE
+    VIRUS_MOVES_SIDEWAYS_ACTIVE: 42,
+    // -> VIRUS_MOVES_SIDEWAYS_DONE
+    VIRUS_MOVES_SIDEWAYS_DONE: 43,
     // -> PLAYER_DRAW_PHASE_READY
+
     PLAYER_DRAW_PHASE_READY: 51,
     // -> PLAYER_DRAW_PHASE_SHOWING_CARDS
     PLAYER_DRAW_PHASE_SHOWING_CARDS: 52,
     // -> PLAYER_DRAW_PHASE_DONE
     PLAYER_DRAW_PHASE_DONE: 53,
     // -> PLAYER_PLAY_PHASE
+
     PLAYER_PLAY_PHASE: 6,
     // -> VIRUS_MUTATION_READY
+
     VIRUS_MUTATION_READY: 71,
     // -> VIRUS_MUTATION_ACTIVE
     VIRUS_MUTATION_ACTIVE: 72,
     // -> VIRUS_MUTATION_DONE
     VIRUS_MUTATION_DONE: 73,
-    // -> VIRUS_MOVES_DOWN
-    VIRUS_MOVES_DOWN: 8,
-    // -> VIRUS_MOVING_ON_ROW_READY
+
+    // -> VIRUS_MOVES_DOWN_READY
+    VIRUS_MOVES_DOWN_READY: 81,
+    // -> VIRUS_MOVES_DOWN_ACTIVE
+    VIRUS_MOVES_DOWN_ACTIVE: 82,
+    // -> VIRUS_MOVES_DOWN_ACTIVE
     // -> BODY_DEFEATED
     // -> VIRUS_DEFEATED
+    VIRUS_MOVES_DOWN_DONE: 83,
+    // -> VIRUS_MOVES_SIDEWAYS_READY
+
     BODY_DEFEATED: 9,
     VIRUS_DEFEATED: 100,
 }
@@ -233,7 +240,6 @@ function switchPlayState(newState) {
 function setupGame() {
     gameState = {
         grid: generateGameStateGrid(),
-        turn: 1,
         virusAttributes: [],
         activeImmuneAttributes: [],
         inactiveImmuneAttributes: [],
@@ -254,7 +260,7 @@ function setupGame() {
     switchPlayState(PlayStates.PICKING_INITIAL_IMMUNE_TRAITS);
     switchPlayState(PlayStates.ASSIGNING_INITIAL_IMMUNE_TRAITS);
 
-    switchPlayState(PlayStates.VIRUS_MOVING_ON_ROW_READY);
+    switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_READY);
 
     continueBasedOnCurrentState();
 }
@@ -290,20 +296,20 @@ function finishedHandlingState() {
     setTimeout(continueBasedOnCurrentState, 2000);
 }
 
-handlers[PlayStates.VIRUS_MOVING_ON_ROW_READY] = function () {
+handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_READY] = function () {
     gameState.replicationAttempts = 0;
-    switchPlayState(PlayStates.VIRUS_MOVING_ON_ROW_ACTIVE);
+    switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_ACTIVE);
     toastMessage("Virus is trying to replicate!");
     finishedHandlingState();
 }
 
-handlers[PlayStates.VIRUS_MOVING_ON_ROW_ACTIVE] = function () {
+handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_ACTIVE] = function () {
     let replicationAttr = gameState.virusAttributes.filter(attr => attr.kind == "Replication Speed")[0];
     if (gameState.replicationAttempts == replicationAttr.arg1) {
-        switchPlayState(PlayStates.VIRUS_MOVING_ON_ROW_DONE);
+        switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_DONE);
     } else {
         if (!areAnyCellsInRowClean(gameState.replicationRow)) {
-            switchPlayState(PlayStates.VIRUS_MOVING_ON_ROW_DONE);
+            switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_DONE);
         } else {
             if (coinFlip()) {
                 let virusSpawnPoints = findValidVirusSpawnPoints();
@@ -321,7 +327,7 @@ handlers[PlayStates.VIRUS_MOVING_ON_ROW_ACTIVE] = function () {
     finishedHandlingState();
 }
 
-handlers[PlayStates.VIRUS_MOVING_ON_ROW_DONE] = function () {
+handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_DONE] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.PLAYER_DRAW_PHASE_READY);
     toastMessage("Virus has finished trying to replicate!");
@@ -390,7 +396,7 @@ handlers[PlayStates.VIRUS_MUTATION_ACTIVE] = function () {
 
 handlers[PlayStates.VIRUS_MUTATION_DONE] = function () {
     toastMessage("Virus has finished trying to mutate!");
-    switchPlayState(PlayStates.VIRUS_MOVES_DOWN);
+    switchPlayState(PlayStates.VIRUS_MOVES_DOWN_READY);
     finishedHandlingState();
 }
 
@@ -437,7 +443,6 @@ function updateGridView() {
         }
     }
 }
-
 
 function updateChooseCardPanel() {
     $("#chooseCardMsg").text("Pick two immune cards to keep!");
