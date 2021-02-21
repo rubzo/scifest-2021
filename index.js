@@ -2,6 +2,7 @@
 let NUM_TISSUES = 3;
 let TISSUE_WIDTH = 5;
 let TISSUE_HEIGHT = 8;
+let ALL_TISSUE_WIDTH = TISSUE_WIDTH * NUM_TISSUES;
 let NUM_INITIAL_VIRUS_ATTRS = 2;
 let NUM_CARDS_TO_DRAFT_FROM_PER_TURN = 3;
 let NUM_CARDS_TO_SELECT_IN_DRAFT_PER_TURN = 2;
@@ -102,7 +103,7 @@ function generateGameStateGrid() {
     let grid = [];
     for (let row = 0; row < TISSUE_HEIGHT; row++) {
         grid.push([]);
-        for (let column = 0; column < (TISSUE_WIDTH * NUM_TISSUES); column++) {
+        for (let column = 0; column < ALL_TISSUE_WIDTH; column++) {
             grid[row].push(new Cell());
         }
     }
@@ -131,7 +132,7 @@ function virusHasWon() {
 function doesVirusHaveAnyAttackPoints() {
     for (let row = TISSUE_HEIGHT - 2; row >= 0; row--) {
         if (areAnyCellsInRowInfected(row)) {
-            for (let column = 0; column < TISSUE_WIDTH; column++) {
+            for (let column = 0; column < ALL_TISSUE_WIDTH; column++) {
                 // TODO: improve this logic
                 if (gameState.grid[row][column].isInfected()
                     && gameState.grid[row + 1][column].isClean()) {
@@ -147,7 +148,7 @@ function findValidVirusAttackPoints() {
     let attackPoints = [];
     for (let row = TISSUE_HEIGHT - 2; row >= 0; row--) {
         if (areAnyCellsInRowInfected(row)) {
-            for (let column = 0; column < TISSUE_WIDTH; column++) {
+            for (let column = 0; column < ALL_TISSUE_WIDTH; column++) {
                 // TODO: improve this logic
                 if (gameState.grid[row][column].isInfected()
                     && gameState.grid[row + 1][column].isClean()) {
@@ -185,7 +186,7 @@ function findValidVirusSpawnPoints() {
         if (gameState.grid[row][column].isClean()) {
             if (column != 0 && gameState.grid[row][column - 1].isInfected()) {
                 validIndices.push(column);
-            } else if (column != ((TISSUE_WIDTH * NUM_TISSUES) - 1)
+            } else if (column != (ALL_TISSUE_WIDTH - 1)
                 && gameState.grid[row][column + 1].isInfected()) {
                 validIndices.push(column);
             }
@@ -444,7 +445,6 @@ handlers[PlayStates.VIRUS_MOVES_DOWN_READY] = function () {
     finishedHandlingState();
 }
 
-// TODO NEXT: implement the two functions called from here
 handlers[PlayStates.VIRUS_MOVES_DOWN_ACTIVE] = function () {
     let replicationAttr = gameState.virusAttributes.filter(
         attr => attr.kind == "Replication Speed"
@@ -532,7 +532,7 @@ function generateGrid(cellsGridDiv, tissueIndex) {
 
 function updateGridView() {
     for (let row = 0; row < TISSUE_HEIGHT; row++) {
-        for (let column = 0; column < (TISSUE_WIDTH * NUM_TISSUES); column++) {
+        for (let column = 0; column < ALL_TISSUE_WIDTH; column++) {
             let cellText = "&nbsp;";
             if (gameState.grid[row][column].isInfected()) {
                 cellText = "X";
