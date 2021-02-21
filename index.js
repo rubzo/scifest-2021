@@ -258,6 +258,8 @@ function handleVirusMovingOnRowActive() {
                     let newSpawnLoc = randomElement(virusSpawnPoints);
                     spawnVirusAt(gameState.replicationRow, newSpawnLoc);
                 }
+            } else {
+                toastMessage("Virus is continuing to try to replicate...");
             }
             gameState.replicationAttempts++;
             updateUI();
