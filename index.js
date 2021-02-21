@@ -3,12 +3,10 @@ let NUM_TISSUES = 3;
 let TISSUE_WIDTH = 5;
 let TISSUE_HEIGHT = 8;
 let NUM_INITIAL_VIRUS_ATTRS = 2;
+let NUM_CARDS_TO_DRAFT_FROM_PER_TURN = 3;
+let NUM_CARDS_TO_SELECT_IN_DRAFT_PER_TURN = 2;
 
 // Game presentation related vars
-let mainGridDiv = null;
-let liverCellsDiv = null;
-let lungCellsDiv = null;
-let heartCellsDiv = null;
 let gridDivs = [];
 
 // General helpers
@@ -48,17 +46,23 @@ const PlayStates = {
     VIRUS_MOVING_ON_ROW_ACTIVE: 42,
     // -> VIRUS_MOVING_ON_ROW_DONE
     VIRUS_MOVING_ON_ROW_DONE: 43,
-    // -> PLAYER_REACTION
-    PLAYER_REACTION: 5,
+    // -> PLAYER_DRAW_PHASE_READY
+    PLAYER_DRAW_PHASE_READY: 51,
+    // -> PLAYER_DRAW_PHASE_SHOWING_CARDS
+    PLAYER_DRAW_PHASE_SHOWING_CARDS: 52,
+    // -> PLAYER_DRAW_PHASE_DONE
+    PLAYER_DRAW_PHASE_DONE: 53,
+    // -> PLAYER_PLAY_PHASE
+    PLAYER_PLAY_PHASE: 6,
     // -> VIRUS_MUTATION
-    VIRUS_MUTATION: 6,
+    VIRUS_MUTATION: 7,
     // -> VIRUS_MOVES_DOWN
-    VIRUS_MOVES_DOWN: 7,
+    VIRUS_MOVES_DOWN: 8,
     // -> VIRUS_MOVING_ON_ROW_READY
     // -> BODY_DEFEATED
     // -> VIRUS_DEFEATED
-    BODY_DEFEATED: 8,
-    VIRUS_DEFEATED: 9,
+    BODY_DEFEATED: 9,
+    VIRUS_DEFEATED: 100,
 }
 
 class Cell {
@@ -160,7 +164,6 @@ function generateInitialVirusAttributes() {
     // Add any others randomly...
     while (attrs.length < NUM_INITIAL_VIRUS_ATTRS) {
         let randomAttr = randomElement(pool);
-
         // TODO: make sure they don't exceed maximum for the kind...
         attrs.push(randomAttr);
     }
@@ -199,9 +202,12 @@ function setupGame() {
         grid: generateGameStateGrid(),
         turn: 1,
         virusAttributes: [],
-        immuneAttributes: [],
+        activeImmuneAttributes: [],
+        inactiveImmuneAttributes: [],
         state: PlayStates.PICKING_INITIAL_VIRUS_TRAITS,
         replicationRow: 0,
+        playerDraftPool: [],
+        numCardsSelectedInDraftPool: 0,
     }
 
     // TODO: this will be factored into the whole
@@ -209,9 +215,8 @@ function setupGame() {
     gameState.virusAttributes = generateInitialVirusAttributes();
     placeVirusBasedOnAttributes();
 
+    // These will probably actually go
     switchPlayState(PlayStates.PICKING_INITIAL_IMMUNE_TRAITS);
-
-    gameState.immuneAttributes = generateInitialImmuneAttributes();
     switchPlayState(PlayStates.ASSIGNING_INITIAL_IMMUNE_TRAITS);
 
     switchPlayState(PlayStates.VIRUS_MOVING_ON_ROW_READY);
@@ -219,32 +224,45 @@ function setupGame() {
     continueBasedOnCurrentState();
 }
 
+function playerDraftedCard(card) {
+    gameState.playerDraftPool = gameState.playerDraftPool.filter(
+        cardInPool => cardInPool != card
+    );
+    gameState.inactiveImmuneAttributes.push(card);
+    gameState.numCardsSelectedInDraftPool++;
+}
+
+function checkIfFinishedDrafting() {
+    if (gameState.numCardsSelectedInDraftPool == NUM_CARDS_TO_SELECT_IN_DRAFT_PER_TURN) {
+        switchPlayState(PlayStates.PLAYER_DRAW_PHASE_DONE);
+        finishedHandlingState();
+        return true;
+    }
+    return false;
+}
+
+//
+// State handlers
+//
+let handlers = {};
+function continueBasedOnCurrentState() {
+    if (handlers[gameState.state] != undefined) {
+        handlers[gameState.state]();
+    }
+}
+
 function finishedHandlingState() {
     setTimeout(continueBasedOnCurrentState, 2000);
 }
 
-function continueBasedOnCurrentState() {
-    switch (gameState.state) {
-        case PlayStates.VIRUS_MOVING_ON_ROW_READY:
-            handleVirusMovingOnRowReady();
-            break;
-        case PlayStates.VIRUS_MOVING_ON_ROW_ACTIVE:
-            handleVirusMovingOnRowActive();
-            break;
-        case PlayStates.VIRUS_MOVING_ON_ROW_DONE:
-            handleVirusMovingOnRowDone();
-            break;
-    }
-}
-
-function handleVirusMovingOnRowReady() {
+handlers[PlayStates.VIRUS_MOVING_ON_ROW_READY] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.VIRUS_MOVING_ON_ROW_ACTIVE);
     toastMessage("Virus is trying to replicate!");
     finishedHandlingState();
 }
 
-function handleVirusMovingOnRowActive() {
+handlers[PlayStates.VIRUS_MOVING_ON_ROW_ACTIVE] = function () {
     let replicationAttr = gameState.virusAttributes.filter(attr => attr.kind == "Replication Speed")[0];
     if (gameState.replicationAttempts == replicationAttr.arg1) {
         switchPlayState(PlayStates.VIRUS_MOVING_ON_ROW_DONE);
@@ -268,22 +286,62 @@ function handleVirusMovingOnRowActive() {
     finishedHandlingState();
 }
 
-function handleVirusMovingOnRowDone() {
+handlers[PlayStates.VIRUS_MOVING_ON_ROW_DONE] = function () {
     gameState.replicationAttempts = 0;
-    switchPlayState(PlayStates.PLAYER_REACTION);
+    switchPlayState(PlayStates.PLAYER_DRAW_PHASE_READY);
     toastMessage("Virus has finished trying to replicate!");
+    finishedHandlingState();
+}
+
+handlers[PlayStates.PLAYER_DRAW_PHASE_READY] = function () {
+    // TODO: we should only add cards that don't break card selection rules!!
+    let pool = Object.values(immuneAttributePool);
+
+    gameState.playerDraftPool = [];
+    gameState.numCardsSelectedInDraftPool = 0;
+
+    while (gameState.playerDraftPool.length < NUM_CARDS_TO_DRAFT_FROM_PER_TURN) {
+        let randomAttr = randomElement(pool);
+        gameState.playerDraftPool.push(randomAttr);
+    }
+
+    updateChooseCardPanel();
+    showChooseCardPanel();
+    switchPlayState(PlayStates.PLAYER_DRAW_PHASE_SHOWING_CARDS);
+    finishedHandlingState();
+}
+
+handlers[PlayStates.PLAYER_DRAW_PHASE_DONE] = function () {
+    hideChooseCardPanel();
+    switchPlayState(PlayStates.PLAYER_PLAY_PHASE);
+    finishedHandlingState();
+}
+
+handlers[PlayStates.PLAYER_PLAY_PHASE] = function () {
+    toastMessage(
+        "Normally you'd play cards now - onwards to virus mutation!",
+        3000
+    );
+    switchPlayState(PlayStates.VIRUS_MUTATION);
     finishedHandlingState();
 }
 
 // ******************************
 // Game presentation related vars
 // ******************************
-function hookupDivs() {
-    mainGridDiv = $("#mainGrid")
-    liverCellsDiv = $("#liverCells")
-    lungCellsDiv = $("#lungCells")
-    heartCellsDiv = $("#heartCells")
+
+function showChooseCardPanel() {
+    $("#chooseCardDisplay").addClass("show");
 }
+
+function hideChooseCardPanel() {
+    $("#chooseCardDisplay").removeClass("show");
+}
+
+function getHTMLForCard(card) {
+    return `<div class="cardContainer"><div class="card">${card.name}</div></div>`;
+}
+
 
 function generateGrid(cellsGridDiv, tissueIndex) {
     for (let row = 0; row < TISSUE_HEIGHT; row++) {
@@ -312,23 +370,46 @@ function updateGridView() {
     }
 }
 
-function updateInfoPanels() {
+
+function updateChooseCardPanel() {
+    $("#chooseCardMsg").text("Pick two immune cards to keep!");
+    $("#chooseCardPanel").empty();
+    gameState.playerDraftPool.forEach(function (item, _) {
+        let cardDiv = $(getHTMLForCard(item));
+        cardDiv.click(function () {
+            playerDraftedCard(item);
+            cardDiv.remove();
+            updateCardPanels();
+            if (checkIfFinishedDrafting()) {
+                $("#chooseCardPanel").empty();
+                $("#chooseCardMsg").text("Thanks!");
+
+            }
+        });
+        $("#chooseCardPanel").append(cardDiv);
+    });
+}
+
+function updateCardPanels() {
     $("#virusCardPanel").empty();
     gameState.virusAttributes.forEach(function (item, _) {
-        // TODO: turn this into something that renders the card for the attribute
-        $("#virusCardPanel").append($(`<div class="cardContainer"><div class="card">${item.name}</div></div>`))
+        $("#virusCardPanel").append($(getHTMLForCard(item)));
     });
 
-    $("#immuneCardPanel").empty();
-    gameState.immuneAttributes.forEach(function (item, _) {
-        // TODO: turn this into something that renders the card for the attribute
-        $("#immuneCardPanel").append($(`<div>${item.name}</div>`))
+    $("#activeImmuneCardPanel").empty();
+    gameState.activeImmuneAttributes.forEach(function (item, _) {
+        $("#activeImmuneCardPanel").append($(getHTMLForCard(item)));
+    });
+
+    $("#inactiveImmuneCardPanel").empty();
+    gameState.inactiveImmuneAttributes.forEach(function (item, _) {
+        $("#inactiveImmuneCardPanel").append($(getHTMLForCard(item)));
     });
 }
 
 function updateUI() {
     updateGridView();
-    updateInfoPanels();
+    updateCardPanels();
 }
 
 function hookupHandlers() {
@@ -344,15 +425,13 @@ function toastMessage(msg, dur) {
     setTimeout(function () {
         $("#snackbar").removeClass("show");
     }, dur);
-
 }
 
 // OnLoad
 function onLoad() {
-    hookupDivs();
-    generateGrid(liverCellsDiv, 0);
-    generateGrid(lungCellsDiv, 1);
-    generateGrid(heartCellsDiv, 2);
+    generateGrid($("#liverCells"), 0);
+    generateGrid($("#lungCells"), 1);
+    generateGrid($("#heartCells"), 2);
 
     setupGame();
 
@@ -415,4 +494,35 @@ let virusAttributePool = {
     "heart-tropism": new VirusAttribute(
         "Heart Tropism",
         "Tropism"),
+}
+
+class ImmuneAttribute {
+    constructor(name, kind, arg1) {
+        this.name = name;
+        this.kind = kind;
+        this.arg1 = arg1;
+    }
+}
+
+let immuneKindRules = {
+    "Cytokine Production": {
+        min: 0,
+        max: 10,
+        unique: false,
+    },
+}
+
+let immuneAttributePool = {
+    "cytokine-production-1": new ImmuneAttribute(
+        "Weak Cytokine Production",
+        "Cytokine Production",
+        1),
+    "cytokine-production-2": new ImmuneAttribute(
+        "Medium Cytokine Production",
+        "Cytokine Production",
+        2),
+    "cytokine-production-3": new ImmuneAttribute(
+        "Strong Cytokine Production",
+        "Cytokine Production",
+        3),
 }
