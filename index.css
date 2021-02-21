@@ -101,8 +101,29 @@ div {
     cursor: default;
 }
 
-/* Thanks w3 schools!!! */
+#immuneCardPanel {
+    display: flex;
+}
 
+.cardContainer {
+    flex-grow: 1;
+    display: inline-flex;
+    margin: 10px;
+    cursor: default;
+}
+
+.card {
+    width: 125px;
+    height: 175px;
+    border: solid 1px;
+    border-radius: 10px;
+    background-color: whitesmoke;
+    display: inline-block;
+    padding-top: 10px;
+    box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Thanks w3 schools!!! */
 /* The snackbar - position it at the bottom and in the middle of the screen */
 #snackbar {
     visibility: hidden; /* Hidden by default. Visible on click */

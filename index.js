@@ -204,6 +204,8 @@ function setupGame() {
         replicationRow: 0,
     }
 
+    // TODO: this will be factored into the whole
+    // 'timeout(continueBasedOnCurrentState)' thing
     gameState.virusAttributes = generateInitialVirusAttributes();
     placeVirusBasedOnAttributes();
 
@@ -218,7 +220,7 @@ function setupGame() {
 }
 
 function finishedHandlingState() {
-    setTimeout(continueBasedOnCurrentState, 3000);
+    setTimeout(continueBasedOnCurrentState, 2000);
 }
 
 function continueBasedOnCurrentState() {
@@ -312,7 +314,7 @@ function updateInfoPanels() {
     $("#virusCardPanel").empty();
     gameState.virusAttributes.forEach(function (item, _) {
         // TODO: turn this into something that renders the card for the attribute
-        $("#virusCardPanel").append($(`<div>${item.name}</div>`))
+        $("#virusCardPanel").append($(`<div class="cardContainer"><div class="card">${item.name}</div></div>`))
     });
 
     $("#immuneCardPanel").empty();
