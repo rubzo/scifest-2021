@@ -113,14 +113,50 @@ function placeVirusOnGrid(row, column) {
     gameState.grid[row][column].markInfected();
 }
 
-function spawnVirusAt(row, column) {
-    placeVirusOnGrid(row, column);
-    toastMessage("Virus has replicated!");
-}
 
 function areAnyCellsInRowClean(row) {
     let cleanCells = gameState.grid[row].filter(cell => cell.isClean());
     return cleanCells.length > 0;
+}
+
+function areAnyCellsInRowInfected(row) {
+    let infectedCells = gameState.grid[row].filter(cell => cell.isInfected());
+    return infectedCells.length > 0;
+}
+
+function virusHasWon() {
+    return areAnyCellsInRowInfected(TISSUE_HEIGHT - 1);
+}
+
+function doesVirusHaveAnyAttackPoints() {
+    for (let row = TISSUE_HEIGHT - 2; row >= 0; row--) {
+        if (areAnyCellsInRowInfected(row)) {
+            for (let column = 0; column < TISSUE_WIDTH; column++) {
+                // TODO: improve this logic
+                if (gameState.grid[row][column].isInfected()
+                    && gameState.grid[row + 1][column].isClean()) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+function findValidVirusAttackPoints() {
+    let attackPoints = [];
+    for (let row = TISSUE_HEIGHT - 2; row >= 0; row--) {
+        if (areAnyCellsInRowInfected(row)) {
+            for (let column = 0; column < TISSUE_WIDTH; column++) {
+                // TODO: improve this logic
+                if (gameState.grid[row][column].isInfected()
+                    && gameState.grid[row + 1][column].isClean()) {
+                    attackPoints.push([row + 1, column]);
+                }
+            }
+        }
+    }
+    return attackPoints;
 }
 
 function findValidVirusSpawnPoints() {
@@ -315,7 +351,8 @@ handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_ACTIVE] = function () {
                 let virusSpawnPoints = findValidVirusSpawnPoints();
                 if (virusSpawnPoints.length != 0) {
                     let newSpawnLoc = randomElement(virusSpawnPoints);
-                    spawnVirusAt(gameState.replicationRow, newSpawnLoc);
+                    toastMessage("Virus has replicated!");
+                    placeVirusOnGrid(gameState.replicationRow, newSpawnLoc);
                 }
             } else {
                 toastMessage("Virus is continuing to try to replicate...");
@@ -400,6 +437,56 @@ handlers[PlayStates.VIRUS_MUTATION_DONE] = function () {
     finishedHandlingState();
 }
 
+handlers[PlayStates.VIRUS_MOVES_DOWN_READY] = function () {
+    gameState.replicationAttempts = 0;
+    switchPlayState(PlayStates.VIRUS_MOVES_DOWN_ACTIVE);
+    toastMessage("Virus is trying to attack deeper!");
+    finishedHandlingState();
+}
+
+// TODO NEXT: implement the two functions called from here
+handlers[PlayStates.VIRUS_MOVES_DOWN_ACTIVE] = function () {
+    let replicationAttr = gameState.virusAttributes.filter(
+        attr => attr.kind == "Replication Speed"
+    )[0];
+    if (gameState.replicationAttempts == replicationAttr.arg1) {
+        switchPlayState(PlayStates.VIRUS_MOVES_DOWN_DONE);
+    } else {
+        if (virusHasWon()) {
+            switchPlayState(PlayStates.BODY_DEFEATED);
+        } else if (!doesVirusHaveAnyAttackPoints()) {
+            switchPlayState(PlayStates.VIRUS_DEFEATED);
+        } else {
+            if (coinFlip()) {
+                let virusAttackPoints = findValidVirusAttackPoints();
+                let newSpawnLoc = randomElement(virusAttackPoints);
+                toastMessage("Virus has attacked!");
+                placeVirusOnGrid(newSpawnLoc[0], newSpawnLoc[1]);
+            } else {
+                toastMessage("Virus is continuing to try to attack...")
+            }
+            gameState.replicationAttempts++;
+            updateUI();
+        }
+    }
+    finishedHandlingState();
+}
+
+handlers[PlayStates.VIRUS_MOVES_DOWN_DONE] = function () {
+    gameState.replicationAttempts = 0;
+    switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_READY);
+    toastMessage("Virus has finished trying to attack!");
+    finishedHandlingState();
+}
+
+handlers[PlayStates.VIRUS_DEFEATED] = function () {
+    showWinScreen();
+}
+
+handlers[PlayStates.BODY_DEFEATED] = function () {
+    showLossScreen();
+}
+
 // ******************************
 // Game presentation related vars
 // ******************************
@@ -416,6 +503,17 @@ function getHTMLForCard(card) {
     return `<div class="cardContainer"><div class="card">${card.name}</div></div>`;
 }
 
+function showLossScreen() {
+    $("#chooseCardMsg").text("The immune system was overcome...");
+    $("#chooseCardPanel").empty();
+    $("#chooseCardDisplay").addClass("show");
+}
+
+function showWinScreen() {
+    $("#chooseCardMsg").text("You successfully fought off the virus!");
+    $("#chooseCardPanel").empty();
+    $("#chooseCardDisplay").addClass("show");
+}
 
 function generateGrid(cellsGridDiv, tissueIndex) {
     for (let row = 0; row < TISSUE_HEIGHT; row++) {
