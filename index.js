@@ -130,18 +130,7 @@ function virusHasWon() {
 }
 
 function doesVirusHaveAnyAttackPoints() {
-    for (let row = TISSUE_HEIGHT - 2; row >= 0; row--) {
-        if (areAnyCellsInRowInfected(row)) {
-            for (let column = 0; column < ALL_TISSUE_WIDTH; column++) {
-                // TODO: improve this logic
-                if (gameState.grid[row][column].isInfected()
-                    && gameState.grid[row + 1][column].isClean()) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
+    return findValidVirusAttackPoints().length > 0;
 }
 
 function findValidVirusAttackPoints() {
@@ -160,38 +149,48 @@ function findValidVirusAttackPoints() {
     return attackPoints;
 }
 
-function findValidVirusSpawnPoints() {
-    // Can only spawn within the valid tissue?
-    let tropismAttr = gameState.virusAttributes.filter(attr => attr.kind == "Tropism")[0];
-    let start = 0;
-    let end = 0;
-    switch (tropismAttr.name) {
-        case "Liver Tropism":
-            start = 0;
-            end = start + TISSUE_WIDTH;
-            break;
-        case "Lung Tropism":
-            start = TISSUE_WIDTH;
-            end = start + TISSUE_WIDTH;
-            break;
-        case "Heart Tropism":
-            start = TISSUE_WIDTH * 2;
-            end = start + TISSUE_WIDTH;
-            break;
-    }
+function doesVirusHaveAnySpawnPoints() {
+    return findValidVirusSpawnPoints().length > 0;
+}
 
+function findValidVirusSpawnPoints() {
     let validIndices = [];
-    let row = gameState.replicationRow;
-    for (let column = start; column < end; column++) {
-        if (gameState.grid[row][column].isClean()) {
-            if (column != 0 && gameState.grid[row][column - 1].isInfected()) {
-                validIndices.push(column);
-            } else if (column != (ALL_TISSUE_WIDTH - 1)
-                && gameState.grid[row][column + 1].isInfected()) {
-                validIndices.push(column);
+
+    let tropisms = gameState.virusAttributes.filter(
+        attr => attr.kind == "Tropism"
+    );
+    tropisms.forEach(function (tropismAttr, _) {
+        let start = 0;
+        let end = 0;
+        switch (tropismAttr.name) {
+            case "Liver Tropism":
+                start = 0;
+                end = start + TISSUE_WIDTH;
+                break;
+            case "Lung Tropism":
+                start = TISSUE_WIDTH;
+                end = start + TISSUE_WIDTH;
+                break;
+            case "Heart Tropism":
+                start = TISSUE_WIDTH * 2;
+                end = start + TISSUE_WIDTH;
+                break;
+        }
+
+        for (let row = TISSUE_HEIGHT - 2; row >= 0; row--) {
+            for (let column = start; column < end; column++) {
+                if (gameState.grid[row][column].isClean()) {
+                    if (column != 0 && gameState.grid[row][column - 1].isInfected()) {
+                        validIndices.push([row, column]);
+                    } else if (column != (ALL_TISSUE_WIDTH - 1)
+                        && gameState.grid[row][column + 1].isInfected()) {
+                        validIndices.push([row, column]);
+                    }
+                }
             }
         }
-    }
+    });
+
     return validIndices;
 }
 
@@ -281,8 +280,6 @@ function setupGame() {
         activeImmuneAttributes: [],
         inactiveImmuneAttributes: [],
         state: PlayStates.PICKING_INITIAL_VIRUS_TRAITS,
-        // TODO: replace this with replication on any row that contains the virus
-        replicationRow: 0,
         playerDraftPool: [],
         numCardsSelectedInDraftPool: 0,
         mutationAttempts: 0,
@@ -345,7 +342,7 @@ handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_ACTIVE] = function () {
     if (gameState.replicationAttempts == replicationAttr.arg1) {
         switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_DONE);
     } else {
-        if (!areAnyCellsInRowClean(gameState.replicationRow)) {
+        if (!doesVirusHaveAnySpawnPoints()) {
             switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_DONE);
         } else {
             if (coinFlip()) {
@@ -353,7 +350,7 @@ handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_ACTIVE] = function () {
                 if (virusSpawnPoints.length != 0) {
                     let newSpawnLoc = randomElement(virusSpawnPoints);
                     toastMessage("Virus has replicated!");
-                    placeVirusOnGrid(gameState.replicationRow, newSpawnLoc);
+                    placeVirusOnGrid(newSpawnLoc[0], newSpawnLoc[1]);
                 }
             } else {
                 toastMessage("Virus is continuing to try to replicate...");
