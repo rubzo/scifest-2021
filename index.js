@@ -5,6 +5,8 @@ let TISSUE_HEIGHT = 8;
 let NUM_INITIAL_VIRUS_ATTRS = 2;
 let NUM_CARDS_TO_DRAFT_FROM_PER_TURN = 3;
 let NUM_CARDS_TO_SELECT_IN_DRAFT_PER_TURN = 2;
+let MAX_MUTATION_ATTEMPTS = 2;
+let NUM_SUCCESSFUL_COIN_FLIPS_TO_MUTATE = 3; // 12.5% chance virus mutates
 
 // Game presentation related vars
 let gridDivs = [];
@@ -54,8 +56,12 @@ const PlayStates = {
     PLAYER_DRAW_PHASE_DONE: 53,
     // -> PLAYER_PLAY_PHASE
     PLAYER_PLAY_PHASE: 6,
-    // -> VIRUS_MUTATION
-    VIRUS_MUTATION: 7,
+    // -> VIRUS_MUTATION_READY
+    VIRUS_MUTATION_READY: 71,
+    // -> VIRUS_MUTATION_ACTIVE
+    VIRUS_MUTATION_ACTIVE: 72,
+    // -> VIRUS_MUTATION_DONE
+    VIRUS_MUTATION_DONE: 73,
     // -> VIRUS_MOVES_DOWN
     VIRUS_MOVES_DOWN: 8,
     // -> VIRUS_MOVING_ON_ROW_READY
@@ -171,6 +177,33 @@ function generateInitialVirusAttributes() {
     return attrs;
 }
 
+function mutateVirus() {
+    // TODO: a bunch of stuff here to make sure the traits we add are 'legal'
+    // 50/50 chance we replace a trait or add a new one
+    if (coinFlip()) {
+        // replacing...
+        let attrToReplace = randomElement(gameState.virusAttributes);
+        let newVirusAttributes = gameState.virusAttributes.filter(
+            attr => attr != attrToReplace
+        );
+        let pool = Object.values(virusAttributePool);
+        let filteredPool = pool.filter(
+            attr => attr.kind == attrToReplace.kind
+        );
+        let replacementAttr = randomElement(filteredPool);
+        newVirusAttributes.push(replacementAttr);
+        gameState.virusAttributes = newVirusAttributes;
+        toastMessage(`Virus replaced ${attrToReplace.name} with ${replacementAttr.name}`)
+    } else {
+        // adding...
+        let pool = Object.values(virusAttributePool);
+        let newAttr = randomElement(pool);
+        gameState.virusAttributes.push(newAttr);
+        toastMessage(`Virus gained ${newAttr.name}`)
+    }
+    updateUI();
+}
+
 function generateInitialImmuneAttributes() {
     return [];
 }
@@ -205,9 +238,11 @@ function setupGame() {
         activeImmuneAttributes: [],
         inactiveImmuneAttributes: [],
         state: PlayStates.PICKING_INITIAL_VIRUS_TRAITS,
+        // TODO: replace this with replication on any row that contains the virus
         replicationRow: 0,
         playerDraftPool: [],
         numCardsSelectedInDraftPool: 0,
+        mutationAttempts: 0,
     }
 
     // TODO: this will be factored into the whole
@@ -318,11 +353,44 @@ handlers[PlayStates.PLAYER_DRAW_PHASE_DONE] = function () {
 }
 
 handlers[PlayStates.PLAYER_PLAY_PHASE] = function () {
-    toastMessage(
-        "Normally you'd play cards now - onwards to virus mutation!",
-        3000
-    );
-    switchPlayState(PlayStates.VIRUS_MUTATION);
+    toastMessage("(Normally you'd play cards now)");
+    switchPlayState(PlayStates.VIRUS_MUTATION_READY);
+    finishedHandlingState();
+}
+
+handlers[PlayStates.VIRUS_MUTATION_READY] = function () {
+    if (coinFlip()) {
+        toastMessage("Virus is trying to mutate!");
+        gameState.mutationAttempts = 0;
+        switchPlayState(PlayStates.VIRUS_MUTATION_ACTIVE);
+    } else {
+        toastMessage("Virus will not mutate this turn!");
+        switchPlayState(PlayStates.VIRUS_MUTATION_DONE);
+    }
+    finishedHandlingState();
+}
+
+handlers[PlayStates.VIRUS_MUTATION_ACTIVE] = function () {
+    if (gameState.mutationAttempts == MAX_MUTATION_ATTEMPTS) {
+        switchPlayState(PlayStates.VIRUS_MUTATION_DONE);
+    } else {
+        gameState.mutationAttempts++;
+        let canMutate = true;
+        for (let flips = 0; (canMutate && (flips < NUM_SUCCESSFUL_COIN_FLIPS_TO_MUTATE)); flips++) {
+            canMutate = coinFlip();
+        }
+        if (canMutate) {
+            mutateVirus();
+        } else {
+            toastMessage("Virus attempted to mutate but failed!");
+        }
+    }
+    finishedHandlingState();
+}
+
+handlers[PlayStates.VIRUS_MUTATION_DONE] = function () {
+    toastMessage("Virus has finished trying to mutate!");
+    switchPlayState(PlayStates.VIRUS_MOVES_DOWN);
     finishedHandlingState();
 }
 
@@ -510,6 +578,11 @@ let immuneKindRules = {
         max: 10,
         unique: false,
     },
+    "Antibodies": {
+        min: 0,
+        max: 3,
+        unique: true,
+    },
 }
 
 let immuneAttributePool = {
@@ -525,4 +598,13 @@ let immuneAttributePool = {
         "Strong Cytokine Production",
         "Cytokine Production",
         3),
+    "liver-antibodies": new ImmuneAttribute(
+        "Liver Antibodies",
+        "Antibodies"),
+    "lung-antibodies": new ImmuneAttribute(
+        "Lung Antibodies",
+        "Antibodies"),
+    "heart-antibodies": new ImmuneAttribute(
+        "Heart Antibodies",
+        "Antibodies"),
 }
