@@ -594,7 +594,7 @@ function toastMessage(msg, dur) {
     snackbar.addClass("show");
     $("#snackbarContainer").append(snackbar);
     setTimeout(function () {
-        snackbar.removeClass("show");
+        snackbar.remove();
     }, dur);
 }
 

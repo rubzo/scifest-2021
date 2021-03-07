@@ -164,10 +164,14 @@ div {
 /* --- */
 .snackbar {
     visibility: hidden; /* Hidden by default. Visible on click */
-    left: 200px;
-    min-width: 400px; /* Set a default minimum width */
-    max-width: 800px; /* Set a default minimum width */
-    background-color: orange; /* Black background color */
+
+    left: 50%;
+    min-width: 800px;
+    max-width: 800px;
+    margin-left: -400px;
+    width: auto;
+    background-color: orange;
+
     color: #fff; /* White text color */
     font-size: 3em;
     text-align: center; /* Centered text */
@@ -175,7 +179,7 @@ div {
     padding: 20px; /* Padding */
     position: fixed; /* Sit on top of the screen */
     z-index: 10;
-    top: 600px;
+    top: 50%;
     box-shadow: 0 12px 20px 0 rgba(0, 0, 0, 0.5);
 }
 
@@ -195,8 +199,8 @@ div {
 */
 
 @keyframes fadein {
-  from {top: 300px; opacity: 0;}
-  to {top: 600px; opacity: 1;}
+  from {top: 25%; opacity: 0;}
+  to {top: 50%; opacity: 1;}
 }
 
 /*
@@ -207,8 +211,8 @@ div {
 */
 
 @keyframes fadeout {
-  from {top: 600px; opacity: 1;}
-  to {top: 300px; opacity: 0;}
+  from {top: 50%; opacity: 1;}
+  to {top: 25%; opacity: 0;}
 }
 
 /* --- */
@@ -217,17 +221,21 @@ div {
 
 #chooseCardDisplay {
     visibility: hidden; /* Hidden by default. Visible on click */
-    min-width: 250px; /* Set a default minimum width */
-    margin-left: -125px; /* Divide value of min-width by 2 */
-    background-color:gray; /* Black background color */
-    color: black; /* White text color */
+
+    left: 50%;
+    min-width: 700px;
+    max-width: 700px;
+    margin-left: -350px;
+    width: auto;
+    background-color:tomato;
+
+    color: black;
     text-align: center; /* Centered text */
-    border-radius: 2px; /* Rounded borders */
+    border-radius: 16px; /* Rounded borders */
     padding: 16px; /* Padding */
     position: fixed; /* Sit on top of the screen */
-    z-index: 8; /* Add a z-index if needed */
-    left: 50%; /* Center the snackbar */
-    top: 25%; /* 25% from the top */
+    z-index: 8;
+    top: 25%;
 }
 
 #chooseCardDisplay.show {
@@ -237,7 +245,7 @@ div {
 }
 
 @-webkit-keyframes cardDisplayFadein {
-  from {top: 0; opacity: 0;}
+  from {top: 10%; opacity: 0;}
   to {top: 25%; opacity: 1;}
 }
 
