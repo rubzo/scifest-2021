@@ -171,7 +171,7 @@ function findValidVirusSpawnPoints() {
                 start = TISSUE_WIDTH;
                 end = start + TISSUE_WIDTH;
                 break;
-            case "Heart Tropism":
+            case "Intestine Tropism":
                 start = TISSUE_WIDTH * 2;
                 end = start + TISSUE_WIDTH;
                 break;
@@ -261,7 +261,7 @@ function placeVirusBasedOnAttributes() {
         case "Lung Tropism":
             loc = (TISSUE_WIDTH * 1) + randomN(TISSUE_WIDTH);
             break;
-        case "Heart Tropism":
+        case "Intestine Tropism":
             loc = (TISSUE_WIDTH * 2) + randomN(TISSUE_WIDTH);
             break;
     }
@@ -599,7 +599,7 @@ function toastMessage(msg, dur) {
 function onLoad() {
     generateGrid($("#liverCells"), 0);
     generateGrid($("#lungCells"), 1);
-    generateGrid($("#heartCells"), 2);
+    generateGrid($("#intestineCells"), 2);
 
     setupGame();
 
@@ -659,8 +659,8 @@ let virusAttributePool = {
     "lung-tropism": new VirusAttribute(
         "Lung Tropism",
         "Tropism"),
-    "heart-tropism": new VirusAttribute(
-        "Heart Tropism",
+    "intestine-tropism": new VirusAttribute(
+        "Intestine Tropism",
         "Tropism"),
 }
 
@@ -704,7 +704,7 @@ let immuneAttributePool = {
     "lung-antibodies": new ImmuneAttribute(
         "Lung Antibodies",
         "Antibodies"),
-    "heart-antibodies": new ImmuneAttribute(
-        "Heart Antibodies",
+    "intestine-antibodies": new ImmuneAttribute(
+        "Intestine Antibodies",
         "Antibodies"),
 }
