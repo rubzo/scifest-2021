@@ -1,7 +1,9 @@
 body {
     margin: 0px;
     padding: 0px;
-    background-color:cadetblue;
+    background-color: #1e3561;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    color: white;
 }
 
 div {
@@ -121,6 +123,7 @@ div {
     display: inline-block;
     padding-top: 10px;
     box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+    color: black;
 }
 
 .card:hover {
