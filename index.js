@@ -8,6 +8,7 @@ let NUM_CARDS_TO_DRAFT_FROM_PER_TURN = 3;
 let NUM_CARDS_TO_SELECT_IN_DRAFT_PER_TURN = 2;
 let MAX_MUTATION_ATTEMPTS = 2;
 let NUM_SUCCESSFUL_COIN_FLIPS_TO_MUTATE = 3; // 12.5% chance virus mutates
+let STATE_TRANSITION_WAIT = 4000; // Make super slow for now, optimise later.
 
 // Game presentation related vars
 let gridDivs = [];
@@ -327,7 +328,7 @@ function continueBasedOnCurrentState() {
 }
 
 function finishedHandlingState() {
-    setTimeout(continueBasedOnCurrentState, 2000);
+    setTimeout(continueBasedOnCurrentState, STATE_TRANSITION_WAIT);
 }
 
 handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_READY] = function () {
@@ -460,7 +461,7 @@ handlers[PlayStates.VIRUS_MOVES_DOWN_ACTIVE] = function () {
                 toastMessage("Virus has attacked!");
                 placeVirusOnGrid(newSpawnLoc[0], newSpawnLoc[1]);
             } else {
-                toastMessage("Virus is continuing to try to attack...")
+                toastMessage("Virus is continuing to try to attack...");
             }
             gameState.replicationAttempts++;
             updateUI();
@@ -586,12 +587,14 @@ function hookupHandlers() {
 
 function toastMessage(msg, dur) {
     if (dur === undefined) {
-        dur = 1400;
+        dur = 2900;
     }
-    $("#snackbar").text(msg);
-    $("#snackbar").addClass("show")
+    // TODO: if dur is changed, we need to change CSS properties
+    let snackbar = $(`<div class="snackbar">${msg}</div>`);
+    snackbar.addClass("show");
+    $("#snackbarContainer").append(snackbar);
     setTimeout(function () {
-        $("#snackbar").removeClass("show");
+        snackbar.removeClass("show");
     }, dur);
 }
 
