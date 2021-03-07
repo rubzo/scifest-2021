@@ -92,10 +92,12 @@ div {
     background-position: 15px 10px;
 }
 
+/*
 .tissueCellColumn:hover {
     padding: 2px;
     border: solid 2px lightskyblue;
 }
+*/
 
 .nogrow {
     overflow: hidden;
