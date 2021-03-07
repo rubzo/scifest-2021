@@ -530,11 +530,11 @@ function generateGrid(cellsGridDiv, tissueIndex) {
 function updateGridView() {
     for (let row = 0; row < TISSUE_HEIGHT; row++) {
         for (let column = 0; column < ALL_TISSUE_WIDTH; column++) {
-            let cellText = "&nbsp;";
             if (gameState.grid[row][column].isInfected()) {
-                cellText = "X";
+                gridDivs[row][column].addClass("virus");
+            } else {
+                gridDivs[row][column].removeClass("virus");
             }
-            gridDivs[row][column].html(`<span class="nogrow">${cellText}</span>`);
         }
     }
 }
