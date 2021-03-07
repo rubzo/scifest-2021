@@ -85,6 +85,7 @@ div {
     cursor: default;
 }
 
+/* technically it's a single tissue cell itself! */
 .tissueCellColumn {
     /* Shows border, for debugging/resizing purposes */
     border: solid 1px black;
@@ -92,6 +93,10 @@ div {
 
     text-align: center;
     font-size: 3em;
+}
+
+.tissueCellColumn:hover {
+    background: rgba(0.1, 0.1, 0.1, 0.1);
 }
 
 .nogrow {
