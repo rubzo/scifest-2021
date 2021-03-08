@@ -3,7 +3,7 @@ let NUM_TISSUES = 3;
 let TISSUE_WIDTH = 5;
 let TISSUE_HEIGHT = 10;
 let ALL_TISSUE_WIDTH = TISSUE_WIDTH * NUM_TISSUES;
-let NUM_INITIAL_VIRUS_ATTRS = 2;
+let NUM_INITIAL_VIRUS_ATTRS = 1;
 let NUM_CARDS_TO_DRAFT_FROM_PER_TURN = 3;
 let NUM_CARDS_TO_SELECT_IN_DRAFT_PER_TURN = 2;
 let MAX_MUTATION_ATTEMPTS = 2;
@@ -278,6 +278,7 @@ function setupGame() {
     gameState = {
         grid: generateGameStateGrid(),
         virusAttributes: [],
+        replicationSpeed: 8,
         activeImmuneAttributes: [],
         inactiveImmuneAttributes: [],
         state: PlayStates.PICKING_INITIAL_VIRUS_TRAITS,
@@ -339,8 +340,7 @@ handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_READY] = function () {
 }
 
 handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_ACTIVE] = function () {
-    let replicationAttr = gameState.virusAttributes.filter(attr => attr.kind == "Replication Speed")[0];
-    if (gameState.replicationAttempts == replicationAttr.arg1) {
+    if (gameState.replicationAttempts == gameState.replicationSpeed) {
         switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_DONE);
     } else {
         if (!doesVirusHaveAnySpawnPoints()) {
@@ -444,10 +444,7 @@ handlers[PlayStates.VIRUS_MOVES_DOWN_READY] = function () {
 }
 
 handlers[PlayStates.VIRUS_MOVES_DOWN_ACTIVE] = function () {
-    let replicationAttr = gameState.virusAttributes.filter(
-        attr => attr.kind == "Replication Speed"
-    )[0];
-    if (gameState.replicationAttempts == replicationAttr.arg1) {
+    if (gameState.replicationAttempts == gameState.replicationSpeed) {
         switchPlayState(PlayStates.VIRUS_MOVES_DOWN_DONE);
     } else {
         if (virusHasWon()) {
@@ -576,9 +573,14 @@ function updateCardPanels() {
     });
 }
 
+function updateOtherData() {
+    $("#virusReplicationSpeed").text(gameState.replicationSpeed);
+}
+
 function updateUI() {
     updateGridView();
     updateCardPanels();
+    updateOtherData();
 }
 
 function hookupHandlers() {
@@ -623,11 +625,6 @@ class VirusAttribute {
 }
 
 let virusKindRules = {
-    "Replication Speed": {
-        min: 1,
-        max: 1,
-        unique: true,
-    },
     "Tropism": {
         min: 1,
         max: 1,
@@ -636,26 +633,6 @@ let virusKindRules = {
 }
 
 let virusAttributePool = {
-    "replication-speed-1": new VirusAttribute(
-        "Very Slow Replication Speed",
-        "Replication Speed",
-        1),
-    "replication-speed-2": new VirusAttribute(
-        "Slow Replication Speed",
-        "Replication Speed",
-        2),
-    "replication-speed-3": new VirusAttribute(
-        "Medium Replication Speed",
-        "Replication Speed",
-        3),
-    "replication-speed-4": new VirusAttribute(
-        "Fast Replication Speed",
-        "Replication Speed",
-        4),
-    "replication-speed-5": new VirusAttribute(
-        "Very Fast Replication Speed",
-        "Replication Speed",
-        5),
     "liver-tropism": new VirusAttribute(
         "Liver Tropism",
         "Tropism"),
