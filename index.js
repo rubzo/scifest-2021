@@ -328,15 +328,18 @@ function continueBasedOnCurrentState() {
     }
 }
 
-function finishedHandlingState() {
-    setTimeout(continueBasedOnCurrentState, STATE_TRANSITION_WAIT);
+function finishedHandlingState(delay) {
+    if (delay === undefined) {
+        delay = STATE_TRANSITION_WAIT;
+    }
+    setTimeout(continueBasedOnCurrentState, delay);
 }
 
 handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_READY] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_ACTIVE);
-    toastMessage("Virus is trying to replicate!");
-    finishedHandlingState();
+    toastMessage("Virus is trying to spread to other cells!");
+    finishedHandlingState(500);
 }
 
 handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_ACTIVE] = function () {
@@ -350,23 +353,23 @@ handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_ACTIVE] = function () {
                 let virusSpawnPoints = findValidVirusSpawnPoints();
                 if (virusSpawnPoints.length != 0) {
                     let newSpawnLoc = randomElement(virusSpawnPoints);
-                    toastMessage("Virus has replicated!");
+                    //toastMessage("Virus has replicated!");
                     placeVirusOnGrid(newSpawnLoc[0], newSpawnLoc[1]);
                 }
             } else {
-                toastMessage("Virus is continuing to try to replicate...");
+                //toastMessage("Virus is continuing to try to replicate...");
             }
             gameState.replicationAttempts++;
             updateUI();
         }
     }
-    finishedHandlingState();
+    finishedHandlingState(500);
 }
 
 handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_DONE] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.PLAYER_DRAW_PHASE_READY);
-    toastMessage("Virus has finished trying to replicate!");
+    toastMessage("Virus has finished spreading for now!");
     finishedHandlingState();
 }
 
@@ -439,8 +442,8 @@ handlers[PlayStates.VIRUS_MUTATION_DONE] = function () {
 handlers[PlayStates.VIRUS_MOVES_DOWN_READY] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.VIRUS_MOVES_DOWN_ACTIVE);
-    toastMessage("Virus is trying to attack deeper!");
-    finishedHandlingState();
+    toastMessage("Virus is trying to attack!");
+    finishedHandlingState(500);
 }
 
 handlers[PlayStates.VIRUS_MOVES_DOWN_ACTIVE] = function () {
@@ -455,10 +458,10 @@ handlers[PlayStates.VIRUS_MOVES_DOWN_ACTIVE] = function () {
             if (coinFlip()) {
                 let virusAttackPoints = findValidVirusAttackPoints();
                 let newSpawnLoc = randomElement(virusAttackPoints);
-                toastMessage("Virus has attacked!");
+                //toastMessage("Virus has attacked!");
                 placeVirusOnGrid(newSpawnLoc[0], newSpawnLoc[1]);
             } else {
-                toastMessage("Virus is continuing to try to attack...");
+                //toastMessage("Virus is continuing to try to attack...");
             }
             gameState.replicationAttempts++;
             updateUI();
@@ -470,7 +473,7 @@ handlers[PlayStates.VIRUS_MOVES_DOWN_ACTIVE] = function () {
 handlers[PlayStates.VIRUS_MOVES_DOWN_DONE] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_READY);
-    toastMessage("Virus has finished trying to attack!");
+    toastMessage("Virus has finished attacking for now!");
     finishedHandlingState();
 }
 
