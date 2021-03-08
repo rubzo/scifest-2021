@@ -495,7 +495,7 @@ function hideChooseCardPanel() {
 }
 
 function getHTMLForCard(card) {
-    return `<div class="cardContainer"><div class="card">${card.name}</div></div>`;
+    return `<div class="cardContainer"><div class="card"><div class="cardText">${card.name}</div></div></div>`;
 }
 
 function showLossScreen() {
@@ -563,14 +563,22 @@ function updateCardPanels() {
     });
 
     $("#activeImmuneCardPanel").empty();
-    gameState.activeImmuneAttributes.forEach(function (item, _) {
-        $("#activeImmuneCardPanel").append($(getHTMLForCard(item)));
-    });
+    if (gameState.activeImmuneAttributes.length > 0) {
+        gameState.activeImmuneAttributes.forEach(function (item, _) {
+            $("#activeImmuneCardPanel").append($(getHTMLForCard(item)));
+        });
+    } else {
+        $("#activeImmuneCardPanel").append($('<div class="cardSpacer"></div>'));
+    }
 
     $("#inactiveImmuneCardPanel").empty();
-    gameState.inactiveImmuneAttributes.forEach(function (item, _) {
-        $("#inactiveImmuneCardPanel").append($(getHTMLForCard(item)));
-    });
+    if (gameState.inactiveImmuneAttributes.length > 0) {
+        gameState.inactiveImmuneAttributes.forEach(function (item, _) {
+            $("#inactiveImmuneCardPanel").append($(getHTMLForCard(item)));
+        });
+    } else {
+        $("#inactiveImmuneCardPanel").append($('<div class="cardSpacer"></div>'));
+    }
 }
 
 function updateOtherData() {
