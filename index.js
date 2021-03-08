@@ -237,12 +237,14 @@ function mutateVirus() {
         let replacementAttr = randomElement(filteredPool);
         newVirusAttributes.push(replacementAttr);
         gameState.virusAttributes = newVirusAttributes;
+        gameState.virusAttributesChanged = true;
         toastMessage(`Virus replaced ${attrToReplace.name} with ${replacementAttr.name}`)
     } else {
         // adding...
         let pool = Object.values(virusAttributePool);
         let newAttr = randomElement(pool);
         gameState.virusAttributes.push(newAttr);
+        gameState.virusAttributesChanged = true;
         toastMessage(`Virus gained ${newAttr.name}`)
     }
     updateUI();
@@ -278,9 +280,12 @@ function setupGame() {
     gameState = {
         grid: generateGameStateGrid(),
         virusAttributes: [],
+        virusAttributesChanged: false,
         replicationSpeed: 8,
         activeImmuneAttributes: [],
         inactiveImmuneAttributes: [],
+        activeImmuneAttributesChanged: false,
+        inactiveImmuneAttributesChanged: false,
         state: PlayStates.PICKING_INITIAL_VIRUS_TRAITS,
         playerDraftPool: [],
         numCardsSelectedInDraftPool: 0,
@@ -290,6 +295,7 @@ function setupGame() {
     // TODO: this will be factored into the whole
     // 'timeout(continueBasedOnCurrentState)' thing
     gameState.virusAttributes = generateInitialVirusAttributes();
+    gameState.virusAttributesChanged = true;
     placeVirusBasedOnAttributes();
 
     // These will probably actually go
@@ -306,6 +312,7 @@ function playerDraftedCard(card) {
         cardInPool => cardInPool != card
     );
     gameState.inactiveImmuneAttributes.push(card);
+    gameState.inactiveImmuneAttributesChanged = true;
     gameState.numCardsSelectedInDraftPool++;
 }
 
@@ -497,8 +504,20 @@ function hideChooseCardPanel() {
     $("#chooseCardDisplay").removeClass("show");
 }
 
-function getHTMLForCard(card) {
-    return `<div class="cardContainer"><div class="card"><div class="cardText">${card.name}</div></div></div>`;
+function getInteractiveDivForCard(card) {
+    let div = null;
+    if (card.art !== null) {
+        div = $(`<div class="cardContainer"><div class="card"><div class="cardText">${card.name}</div><div class="cardBlowUp hidden" style="background-image: url('${card.art}');"></div></div></div>`);
+    } else {
+        div = $(`<div class="cardContainer"><div class="card"><div class="cardText">${card.name}</div></div></div>`);
+    }
+    div.mouseenter(function () {
+        div.find(".cardBlowUp").removeClass("hidden");
+    });
+    div.mouseleave(function () {
+        div.find(".cardBlowUp").addClass("hidden");
+    });
+    return div;
 }
 
 function showLossScreen() {
@@ -544,7 +563,7 @@ function updateChooseCardPanel() {
     $("#chooseCardMsg").text("Pick two immune cards to keep!");
     $("#chooseCardPanel").empty();
     gameState.playerDraftPool.forEach(function (item, _) {
-        let cardDiv = $(getHTMLForCard(item));
+        let cardDiv = getInteractiveDivForCard(item);
         cardDiv.click(function () {
             playerDraftedCard(item);
             cardDiv.remove();
@@ -560,27 +579,36 @@ function updateChooseCardPanel() {
 }
 
 function updateCardPanels() {
-    $("#virusCardPanel").empty();
-    gameState.virusAttributes.forEach(function (item, _) {
-        $("#virusCardPanel").append($(getHTMLForCard(item)));
-    });
-
-    $("#activeImmuneCardPanel").empty();
-    if (gameState.activeImmuneAttributes.length > 0) {
-        gameState.activeImmuneAttributes.forEach(function (item, _) {
-            $("#activeImmuneCardPanel").append($(getHTMLForCard(item)));
+    if (gameState.virusAttributesChanged) {
+        $("#virusCardPanel").empty();
+        gameState.virusAttributes.forEach(function (item, _) {
+            $("#virusCardPanel").append(getInteractiveDivForCard(item));
         });
-    } else {
-        $("#activeImmuneCardPanel").append($('<div class="cardSpacer"></div>'));
+        gameState.virusAttributesChanged = false;
     }
 
-    $("#inactiveImmuneCardPanel").empty();
-    if (gameState.inactiveImmuneAttributes.length > 0) {
-        gameState.inactiveImmuneAttributes.forEach(function (item, _) {
-            $("#inactiveImmuneCardPanel").append($(getHTMLForCard(item)));
-        });
-    } else {
-        $("#inactiveImmuneCardPanel").append($('<div class="cardSpacer"></div>'));
+    if (gameState.activeImmuneAttributesChanged) {
+        $("#activeImmuneCardPanel").empty();
+        if (gameState.activeImmuneAttributes.length > 0) {
+            gameState.activeImmuneAttributes.forEach(function (item, _) {
+                $("#activeImmuneCardPanel").append(getInteractiveDivForCard(item));
+            });
+        } else {
+            $("#activeImmuneCardPanel").append($('<div class="cardSpacer"></div>'));
+        }
+        gameState.activeImmuneAttributesChanged = false;
+    }
+
+    if (gameState.inactiveImmuneAttributesChanged) {
+        $("#inactiveImmuneCardPanel").empty();
+        if (gameState.inactiveImmuneAttributes.length > 0) {
+            gameState.inactiveImmuneAttributes.forEach(function (item, _) {
+                $("#inactiveImmuneCardPanel").append(getInteractiveDivForCard(item));
+            });
+        } else {
+            $("#inactiveImmuneCardPanel").append($('<div class="cardSpacer"></div>'));
+        }
+        gameState.inactiveImmuneAttributesChanged = false;
     }
 }
 
@@ -628,9 +656,10 @@ $(document).ready(onLoad);
 
 // Virus Attributes
 class VirusAttribute {
-    constructor(name, kind, arg1) {
+    constructor(name, kind, art, arg1) {
         this.name = name;
         this.kind = kind;
+        this.art = art;
         this.arg1 = arg1;
     }
 }
@@ -646,19 +675,23 @@ let virusKindRules = {
 let virusAttributePool = {
     "liver-tropism": new VirusAttribute(
         "Liver Tropism",
-        "Tropism"),
+        "Tropism",
+        "assets/cards/card-virus-tropism-liver.png"),
     "lung-tropism": new VirusAttribute(
         "Lung Tropism",
-        "Tropism"),
+        "Tropism",
+        "assets/cards/card-virus-tropism-lung.png"),
     "intestine-tropism": new VirusAttribute(
         "Intestine Tropism",
-        "Tropism"),
+        "Tropism",
+        "assets/cards/card-virus-tropism-intestine.png"),
 }
 
 class ImmuneAttribute {
-    constructor(name, kind, arg1) {
+    constructor(name, kind, art, arg1) {
         this.name = name;
         this.kind = kind;
+        this.art = art;
         this.arg1 = arg1;
     }
 }
@@ -680,22 +713,28 @@ let immuneAttributePool = {
     "cytokine-production-1": new ImmuneAttribute(
         "Weak Cytokine Production",
         "Cytokine Production",
+        null,
         1),
     "cytokine-production-2": new ImmuneAttribute(
         "Medium Cytokine Production",
         "Cytokine Production",
+        null,
         2),
     "cytokine-production-3": new ImmuneAttribute(
         "Strong Cytokine Production",
         "Cytokine Production",
+        null,
         3),
     "liver-antibodies": new ImmuneAttribute(
         "Liver Antibodies",
-        "Antibodies"),
+        "Antibodies",
+        null),
     "lung-antibodies": new ImmuneAttribute(
         "Lung Antibodies",
-        "Antibodies"),
+        "Antibodies",
+        null),
     "intestine-antibodies": new ImmuneAttribute(
         "Intestine Antibodies",
-        "Antibodies"),
+        "Antibodies",
+        null),
 }

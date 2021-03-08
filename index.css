@@ -173,6 +173,8 @@ a:visited {
     font-size: 1em;
 
     box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+
+    position: relative;
 }
 
 .cardText {
@@ -183,6 +185,25 @@ a:visited {
 
 .card:hover {
     box-shadow: 0 12px 20px 0 rgba(0, 0, 0, 0.5);
+}
+
+.cardBlowUp {
+    position: absolute;
+    top: 80px;
+    left: -90px;
+
+    width: 296px;
+    max-width: 296px;
+    height: 473px;
+    max-height: 473px;
+
+    border-radius: 10px;
+
+    box-shadow: 0 20px 32px 0 rgba(0, 0, 0, 0.4);
+}
+
+.hidden {
+    visibility: hidden;
 }
 
 /*.virusIcon {
@@ -211,7 +232,7 @@ a:visited {
     padding: 20px; /* Padding */
     position: fixed; /* Sit on top of the screen */
     z-index: 10;
-    top: 50%;
+    top: 30%;
     box-shadow: 0 12px 20px 0 rgba(0, 0, 0, 0.5);
 }
 
@@ -231,8 +252,8 @@ a:visited {
 */
 
 @keyframes fadein {
-  from {top: 25%; opacity: 0;}
-  to {top: 50%; opacity: 1;}
+  from {top: 15%; opacity: 0;}
+  to {top: 30%; opacity: 1;}
 }
 
 /*
@@ -243,8 +264,8 @@ a:visited {
 */
 
 @keyframes fadeout {
-  from {top: 50%; opacity: 1;}
-  to {top: 25%; opacity: 0;}
+  from {top: 30%; opacity: 1;}
+  to {top: 15%; opacity: 0;}
 }
 
 /* --- */
