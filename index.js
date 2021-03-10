@@ -18,9 +18,14 @@ function randomN(n) {
     return Math.floor(Math.random() * n);
 }
 
-function coinFlip() {
-    return randomN(2) == 0;
+function percentChance(percent) {
+    return randomN(100) < percent;
 }
+
+function coinFlip() {
+    return percentChance(50);
+}
+
 
 function randomElement(ar) {
     return ar[randomN(ar.length)];
@@ -200,6 +205,7 @@ function generateInitialVirusAttributes() {
     let pool = Object.values(virusAttributePool);
 
     // Add all the virus attributes that there must be a minimum number of!
+    // TODO: actually just spawn one or two tropisms based on difficulty!
     for (var kindRuleName of Object.keys(virusKindRules)) {
         let kindRule = virusKindRules[kindRuleName];
         let added = 0;
@@ -211,41 +217,48 @@ function generateInitialVirusAttributes() {
         }
     }
 
-    // Add any others randomly...
-    while (attrs.length < NUM_INITIAL_VIRUS_ATTRS) {
-        let randomAttr = randomElement(pool);
-        // TODO: make sure they don't exceed maximum for the kind...
-        attrs.push(randomAttr);
-    }
-
     return attrs;
 }
 
 function mutateVirus() {
-    // TODO: a bunch of stuff here to make sure the traits we add are 'legal'
-    // 50/50 chance we replace a trait or add a new one
-    if (coinFlip()) {
-        // replacing...
-        let attrToReplace = randomElement(gameState.virusAttributes);
-        let newVirusAttributes = gameState.virusAttributes.filter(
-            attr => attr != attrToReplace
-        );
-        let pool = Object.values(virusAttributePool);
-        let filteredPool = pool.filter(
-            attr => attr.kind == attrToReplace.kind
-        );
-        let replacementAttr = randomElement(filteredPool);
-        newVirusAttributes.push(replacementAttr);
-        gameState.virusAttributes = newVirusAttributes;
-        gameState.virusAttributesChanged = true;
-        toastMessage(`Virus replaced ${attrToReplace.name} with ${replacementAttr.name}`)
-    } else {
+    // TODO: make this obey the virus rules
+    if (percentChance(60)) {
         // adding...
         let pool = Object.values(virusAttributePool);
         let newAttr = randomElement(pool);
+        newAttr.applyEffects()
         gameState.virusAttributes.push(newAttr);
         gameState.virusAttributesChanged = true;
-        toastMessage(`Virus gained ${newAttr.name}`)
+        toastMessage(`Virus gained ${newAttr.name}!`)
+    } else {
+        if (percentChance(75)) {
+            // replacing...
+            let attrToReplace = randomElement(gameState.virusAttributes);
+            let newVirusAttributes = gameState.virusAttributes.filter(
+                attr => attr != attrToReplace
+            );
+            let pool = Object.values(virusAttributePool);
+            let filteredPool = pool.filter(
+                attr => attr.kind == attrToReplace.kind
+            );
+            let replacementAttr = randomElement(filteredPool);
+            newVirusAttributes.push(replacementAttr);
+            gameState.virusAttributes = newVirusAttributes;
+            gameState.virusAttributesChanged = true;
+            attrToReplace.removeEffects();
+            replacementAttr.applyEffects();
+            toastMessage(`Virus lost ${attrToReplace.name}, and gained ${replacementAttr.name}!`)
+        } else {
+            // removing...
+            let attrToRemove = randomElement(gameState.virusAttributes);
+            let newVirusAttributes = gameState.virusAttributes.filter(
+                attr => attr != attrToRemove
+            );
+            gameState.virusAttributes = newVirusAttributes;
+            gameState.virusAttributesChanged = true;
+            attrToRemove.removeEffects();
+            toastMessage(`Virus lost ${attrToRemove.name}!`)
+        }
     }
     updateUI();
 }
@@ -289,7 +302,6 @@ function setupGame() {
         state: PlayStates.PICKING_INITIAL_VIRUS_TRAITS,
         playerDraftPool: [],
         numCardsSelectedInDraftPool: 0,
-        mutationAttempts: 0,
     }
 
     // TODO: this will be factored into the whole
@@ -412,45 +424,29 @@ handlers[PlayStates.PLAYER_PLAY_PHASE] = function () {
 
 handlers[PlayStates.VIRUS_MUTATION_READY] = function () {
     if (coinFlip()) {
-        toastMessage("Virus is trying to mutate!");
-        gameState.mutationAttempts = 0;
         switchPlayState(PlayStates.VIRUS_MUTATION_ACTIVE);
     } else {
-        toastMessage("Virus will not mutate this turn!");
         switchPlayState(PlayStates.VIRUS_MUTATION_DONE);
     }
-    finishedHandlingState();
+    finishedHandlingState(500);
 }
 
 handlers[PlayStates.VIRUS_MUTATION_ACTIVE] = function () {
-    if (gameState.mutationAttempts == MAX_MUTATION_ATTEMPTS) {
-        switchPlayState(PlayStates.VIRUS_MUTATION_DONE);
-    } else {
-        gameState.mutationAttempts++;
-        let canMutate = true;
-        for (let flips = 0; (canMutate && (flips < NUM_SUCCESSFUL_COIN_FLIPS_TO_MUTATE)); flips++) {
-            canMutate = coinFlip();
-        }
-        if (canMutate) {
-            mutateVirus();
-        } else {
-            toastMessage("Virus attempted to mutate but failed!");
-        }
-    }
+    mutateVirus();
+    switchPlayState(PlayStates.VIRUS_MUTATION_DONE);
     finishedHandlingState();
 }
 
 handlers[PlayStates.VIRUS_MUTATION_DONE] = function () {
-    toastMessage("Virus has finished trying to mutate!");
     switchPlayState(PlayStates.VIRUS_MOVES_DOWN_READY);
-    finishedHandlingState();
+    finishedHandlingState(500);
 }
 
 handlers[PlayStates.VIRUS_MOVES_DOWN_READY] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.VIRUS_MOVES_DOWN_ACTIVE);
     toastMessage("Virus is trying to attack!");
-    finishedHandlingState(500);
+    finishedHandlingState(700);
 }
 
 handlers[PlayStates.VIRUS_MOVES_DOWN_ACTIVE] = function () {
@@ -474,7 +470,7 @@ handlers[PlayStates.VIRUS_MOVES_DOWN_ACTIVE] = function () {
             updateUI();
         }
     }
-    finishedHandlingState();
+    finishedHandlingState(700);
 }
 
 handlers[PlayStates.VIRUS_MOVES_DOWN_DONE] = function () {
@@ -656,18 +652,24 @@ $(document).ready(onLoad);
 
 // Virus Attributes
 class VirusAttribute {
-    constructor(name, kind, art, arg1) {
+    constructor(name, kind, art, applyEffects, removeEffects) {
         this.name = name;
         this.kind = kind;
         this.art = art;
-        this.arg1 = arg1;
+        this.applyEffects = applyEffects;
+        this.removeEffects = removeEffects;
     }
 }
 
 let virusKindRules = {
     "Tropism": {
         min: 1,
-        max: 1,
+        max: 3,
+        unique: true,
+    },
+    "Antiviral Resistance": {
+        min: 0,
+        max: 5,
         unique: true,
     }
 }
@@ -676,15 +678,51 @@ let virusAttributePool = {
     "liver-tropism": new VirusAttribute(
         "Liver Tropism",
         "Tropism",
-        "assets/cards/card-virus-tropism-liver.png"),
+        "assets/cards/card-virus-tropism-liver.png",
+        function () {
+            // Adding the card...
+
+        },
+        function () {
+            // Removing the card...
+
+        }),
     "lung-tropism": new VirusAttribute(
         "Lung Tropism",
         "Tropism",
-        "assets/cards/card-virus-tropism-lung.png"),
+        "assets/cards/card-virus-tropism-lung.png",
+        function () {
+            // Adding the card...
+
+        },
+        function () {
+            // Removing the card...
+
+        }),
     "intestine-tropism": new VirusAttribute(
         "Intestine Tropism",
         "Tropism",
-        "assets/cards/card-virus-tropism-intestine.png"),
+        "assets/cards/card-virus-tropism-intestine.png",
+        function () {
+            // Adding the card...
+
+        },
+        function () {
+            // Removing the card...
+
+        }),
+    "antiviral-resistance": new VirusAttribute(
+        "Antiviral Resistance",
+        "Antiviral Resistance",
+        "assets/cards/card-virus-antiviral-resistance.png",
+        function () {
+            // Adding the card...
+            gameState.replicationSpeed++;
+        },
+        function () {
+            // Removing the card...
+            gameState.replicationSpeed--;
+        }),
 }
 
 class ImmuneAttribute {
