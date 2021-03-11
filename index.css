@@ -131,11 +131,12 @@ a:visited {
 }
 
 .button {
-    background-color:darkslategray;
+    background-color:green;
     color: white;
     margin: 1em;
     padding: 1em;
     cursor: default;
+    text-align: center;
 }
 
 #immuneCardPanel {
@@ -205,6 +206,10 @@ a:visited {
 
 .hidden {
     visibility: hidden;
+}
+
+.gone {
+    display: none;
 }
 
 /*.virusIcon {

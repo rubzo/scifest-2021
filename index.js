@@ -49,31 +49,27 @@ const PlayStates = {
     // -> VIRUS_MOVES_SIDEWAYS_READY
 
     VIRUS_MOVES_SIDEWAYS_READY: 41,
-    // -> VIRUS_MOVES_SIDEWAYS_ACTIVE
     VIRUS_MOVES_SIDEWAYS_ACTIVE: 42,
-    // -> VIRUS_MOVES_SIDEWAYS_DONE
     VIRUS_MOVES_SIDEWAYS_DONE: 43,
     // -> PLAYER_DRAW_PHASE_READY
 
     PLAYER_DRAW_PHASE_READY: 51,
-    // -> PLAYER_DRAW_PHASE_SHOWING_CARDS
     PLAYER_DRAW_PHASE_SHOWING_CARDS: 52,
-    // -> PLAYER_DRAW_PHASE_DONE
     PLAYER_DRAW_PHASE_DONE: 53,
-    // -> PLAYER_PLAY_PHASE
+    // -> PLAYER_PLAY_PHASE_READY
 
-    PLAYER_PLAY_PHASE: 6,
+    PLAYER_PLAY_PHASE_READY: 61,
+    PLAYER_PLAY_PHASE_WAITING: 62,
+    PLAYER_PLAY_PHASE_INTERACTING: 63,
+    PLAYER_PLAY_PHASE_DONE: 64,
     // -> VIRUS_MUTATION_READY
 
     VIRUS_MUTATION_READY: 71,
-    // -> VIRUS_MUTATION_ACTIVE
     VIRUS_MUTATION_ACTIVE: 72,
-    // -> VIRUS_MUTATION_DONE
     VIRUS_MUTATION_DONE: 73,
-
     // -> VIRUS_MOVES_DOWN_READY
+
     VIRUS_MOVES_DOWN_READY: 81,
-    // -> VIRUS_MOVES_DOWN_ACTIVE
     VIRUS_MOVES_DOWN_ACTIVE: 82,
     // -> VIRUS_MOVES_DOWN_ACTIVE
     // -> BODY_DEFEATED
@@ -401,6 +397,10 @@ handlers[PlayStates.PLAYER_DRAW_PHASE_READY] = function () {
 
     while (gameState.playerDraftPool.length < NUM_CARDS_TO_DRAFT_FROM_PER_TURN) {
         let randomAttr = randomElement(pool);
+        // WE NEED TO MAKE THE CARD UNIQUE!!
+        randomAttr = { ...randomAttr }; // apparently this is only a shallow clone. So I think
+        // I'm safe for now...
+        randomAttr.unique = Date.now() + "-" + randomN(1000000);
         gameState.playerDraftPool.push(randomAttr);
     }
 
@@ -412,14 +412,20 @@ handlers[PlayStates.PLAYER_DRAW_PHASE_READY] = function () {
 
 handlers[PlayStates.PLAYER_DRAW_PHASE_DONE] = function () {
     hideChooseCardPanel();
-    switchPlayState(PlayStates.PLAYER_PLAY_PHASE);
+    switchPlayState(PlayStates.PLAYER_PLAY_PHASE_READY);
     finishedHandlingState();
 }
 
-handlers[PlayStates.PLAYER_PLAY_PHASE] = function () {
-    toastMessage("(Normally you'd play cards now)");
-    switchPlayState(PlayStates.VIRUS_MUTATION_READY);
+handlers[PlayStates.PLAYER_PLAY_PHASE_READY] = function () {
+    toastMessage("Time to play cards to fight the virus!");
+    setupUIForPlayPhase();
+    switchPlayState(PlayStates.PLAYER_PLAY_PHASE_WAITING);
     finishedHandlingState();
+}
+
+handlers[PlayStates.PLAYER_PLAY_PHASE_DONE] = function () {
+    switchPlayState(PlayStates.VIRUS_MUTATION_READY);
+    finishedHandlingState(1000);
 }
 
 handlers[PlayStates.VIRUS_MUTATION_READY] = function () {
@@ -574,7 +580,7 @@ function updateChooseCardPanel() {
     });
 }
 
-function updateCardPanels() {
+function updateVirusCardPanel() {
     if (gameState.virusAttributesChanged) {
         $("#virusCardPanel").empty();
         gameState.virusAttributes.forEach(function (item, _) {
@@ -582,7 +588,9 @@ function updateCardPanels() {
         });
         gameState.virusAttributesChanged = false;
     }
+}
 
+function updateActiveCardPanel() {
     if (gameState.activeImmuneAttributesChanged) {
         $("#activeImmuneCardPanel").empty();
         if (gameState.activeImmuneAttributes.length > 0) {
@@ -594,7 +602,9 @@ function updateCardPanels() {
         }
         gameState.activeImmuneAttributesChanged = false;
     }
+}
 
+function updateInactiveCardPanel() {
     if (gameState.inactiveImmuneAttributesChanged) {
         $("#inactiveImmuneCardPanel").empty();
         if (gameState.inactiveImmuneAttributes.length > 0) {
@@ -608,6 +618,12 @@ function updateCardPanels() {
     }
 }
 
+function updateCardPanels() {
+    updateVirusCardPanel();
+    updateActiveCardPanel();
+    updateInactiveCardPanel();
+}
+
 function updateOtherData() {
     $("#virusReplicationSpeed").text(gameState.replicationSpeed);
 }
@@ -616,6 +632,54 @@ function updateUI() {
     updateGridView();
     updateCardPanels();
     updateOtherData();
+}
+
+function makeCardActive(card) {
+    gameState.inactiveImmuneAttributes = gameState.inactiveImmuneAttributes.filter(c => c !== card);
+    gameState.activeImmuneAttributes.push(card);
+    gameState.inactiveImmuneAttributesChanged = true;
+    gameState.activeImmuneAttributesChanged = true;
+}
+
+function playCardUISide(gameCard, uiCard) {
+    if (!gameCard.needsInteraction) {
+        gameCard.applyEffects();
+        makeCardActive(gameCard);
+        $(uiCard).remove();
+        updateActiveCardPanel();
+        updateOtherData();
+    } else {
+        // Move to new state, etc... TODO...
+    }
+}
+
+function createCardClickHandler(gameCard, uiCard) {
+    return function () {
+        playCardUISide(gameCard, uiCard);
+        $(uiCard).off("click");
+        // Do we ever need to update anything else? GridView?
+    }
+}
+
+function setupUIForPlayPhase() {
+    let uiCards = $("#inactiveImmuneCardPanel").find(".cardContainer");
+    let gameCards = gameState.inactiveImmuneAttributes;
+    for (let index = 0; index < uiCards.length; index++) {
+        $(uiCards[index]).click(createCardClickHandler(gameCards[index], uiCards[index]));
+    }
+
+    $("#endTurnButton").click(function () {
+        let uiCards = $("#inactiveImmuneCardPanel").find(".cardContainer");
+        for (let index = 0; index < uiCards.length; index++) {
+            $(uiCards[index]).off("click");
+        }
+        $("#endTurnButton").addClass("gone");
+        $("#endTurnButton").off("click");
+
+        switchPlayState(PlayStates.PLAYER_PLAY_PHASE_DONE);
+        finishedHandlingState(500);
+    });
+    $("#endTurnButton").removeClass("gone");
 }
 
 function hookupHandlers() {
@@ -725,54 +789,38 @@ let virusAttributePool = {
         }),
 }
 
+// Note these attributes should not be contain other objects? As we need to shallow clone them.
 class ImmuneAttribute {
-    constructor(name, kind, art, arg1) {
+    constructor(name, kind, art, needsInteraction, applyEffects, removeEffects) {
         this.name = name;
         this.kind = kind;
         this.art = art;
-        this.arg1 = arg1;
+        this.needsInteraction = needsInteraction;
+        this.applyEffects = applyEffects;
+        this.removeEffects = removeEffects;
     }
 }
 
 let immuneKindRules = {
-    "Cytokine Production": {
+    "Antiviral": {
         min: 0,
-        max: 10,
-        unique: false,
-    },
-    "Antibodies": {
-        min: 0,
-        max: 3,
+        max: 8,
         unique: true,
     },
 }
 
 let immuneAttributePool = {
-    "cytokine-production-1": new ImmuneAttribute(
-        "Weak Cytokine Production",
-        "Cytokine Production",
-        null,
-        1),
-    "cytokine-production-2": new ImmuneAttribute(
-        "Medium Cytokine Production",
-        "Cytokine Production",
-        null,
-        2),
-    "cytokine-production-3": new ImmuneAttribute(
-        "Strong Cytokine Production",
-        "Cytokine Production",
-        null,
-        3),
-    "liver-antibodies": new ImmuneAttribute(
-        "Liver Antibodies",
-        "Antibodies",
-        null),
-    "lung-antibodies": new ImmuneAttribute(
-        "Lung Antibodies",
-        "Antibodies",
-        null),
-    "intestine-antibodies": new ImmuneAttribute(
-        "Intestine Antibodies",
-        "Antibodies",
-        null),
+    "antiviral": new ImmuneAttribute(
+        "Antiviral",
+        "Antiviral",
+        "assets/cards/card-immune-antiviral.png",
+        false, // needsInteraction
+        function () {
+            // Adding the card...
+            gameState.replicationSpeed--;
+        },
+        function () {
+            // Removing the card...
+            gameState.replicationSpeed++;
+        }),
 }
