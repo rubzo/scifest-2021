@@ -7,7 +7,6 @@ let NUM_INITIAL_VIRUS_ATTRS = 1;
 let NUM_CARDS_TO_DRAFT_FROM_PER_TURN = 3;
 let NUM_CARDS_TO_SELECT_IN_DRAFT_PER_TURN = 2;
 let MAX_MUTATION_ATTEMPTS = 2;
-let NUM_SUCCESSFUL_COIN_FLIPS_TO_MUTATE = 3; // 12.5% chance virus mutates
 let STATE_TRANSITION_WAIT = 4000; // Make super slow for now, optimise later.
 
 // Game presentation related vars
@@ -119,6 +118,11 @@ class Cell {
     protectWith(card) {
         this.state = CellStates.PROTECTED;
         this.attribute = card;
+    }
+
+    unprotect() {
+        this.state = CellStates.CLEAN;
+        this.attribute = null;
     }
 };
 
@@ -245,8 +249,12 @@ function generateInitialVirusAttributes() {
 }
 
 function mutateVirus() {
+    // Cleanup
+    gameState.virusAttributes = gameState.virusAttributes.filter(v => !v.oneshot);
+    gameState.virusAttributesChanged = true;
+
     // TODO: make this obey the virus rules
-    if (percentChance(60)) {
+    if (percentChance(90)) {
         // adding...
         let pool = Object.values(virusAttributePool);
         let newAttr = randomElement(pool);
@@ -255,7 +263,7 @@ function mutateVirus() {
         gameState.virusAttributesChanged = true;
         toastMessage(`Virus gained ${newAttr.name}!`)
     } else {
-        if (percentChance(75)) {
+        if (percentChance(80)) {
             // replacing...
             let attrToReplace = randomElement(gameState.virusAttributes);
             let newVirusAttributes = gameState.virusAttributes.filter(
@@ -461,7 +469,7 @@ handlers[PlayStates.PLAYER_PLAY_PHASE_DONE] = function () {
 }
 
 handlers[PlayStates.VIRUS_MUTATION_READY] = function () {
-    if (coinFlip()) {
+    if (percentChance(90)) {
         switchPlayState(PlayStates.VIRUS_MUTATION_ACTIVE);
     } else {
         switchPlayState(PlayStates.VIRUS_MUTATION_DONE);
@@ -820,10 +828,11 @@ $(document).ready(onLoad);
 
 // Virus Attributes
 class VirusAttribute {
-    constructor(name, kind, art, applyEffects, removeEffects) {
+    constructor(name, kind, art, oneshot, applyEffects, removeEffects) {
         this.name = name;
         this.kind = kind;
         this.art = art;
+        this.oneshot = oneshot;
         this.applyEffects = applyEffects;
         this.removeEffects = removeEffects;
     }
@@ -839,7 +848,31 @@ let virusKindRules = {
         min: 0,
         max: 5,
         unique: true,
+    },
+    "Cytokine Neutralisation": {
+        min: 0,
+        max: 5,
+        unique: false,
     }
+}
+
+function searchAndRemoveCytokineCard(cardName) {
+    let cytokineIndices = [];
+    for (let i = 0; i < gameState.activeImmuneAttributes.length; i++) {
+        if (gameState.activeImmuneAttributes[i].name === cardName) {
+            cytokineIndices.push(i);
+        }
+    }
+    if (cytokineIndices.length > 0) {
+        let indexToRemove = randomElement(cytokineIndices);
+        let cardToRemove = gameState.activeImmuneAttributes[indexToRemove];
+        cardToRemove.removeEffects();
+        gameState.activeImmuneAttributes.splice(indexToRemove, 1);
+        gameState.activeImmuneAttributesChanged = true;
+        updateActiveCardPanel();
+        updateGridView();
+    }
+
 }
 
 let virusAttributePool = {
@@ -847,6 +880,7 @@ let virusAttributePool = {
         "Liver Tropism",
         "Tropism",
         "assets/cards/card-virus-tropism-liver.png",
+        false, // oneshot
         function () {
             // Adding the card...
 
@@ -859,6 +893,7 @@ let virusAttributePool = {
         "Lung Tropism",
         "Tropism",
         "assets/cards/card-virus-tropism-lung.png",
+        false, // oneshot
         function () {
             // Adding the card...
 
@@ -871,6 +906,7 @@ let virusAttributePool = {
         "Intestine Tropism",
         "Tropism",
         "assets/cards/card-virus-tropism-intestine.png",
+        false, // oneshot
         function () {
             // Adding the card...
 
@@ -883,6 +919,7 @@ let virusAttributePool = {
         "Antiviral Resistance",
         "Antiviral Resistance",
         "assets/cards/card-virus-antiviral-resistance.png",
+        false, // oneshot
         function () {
             // Adding the card...
             gameState.replicationSpeed++;
@@ -890,6 +927,42 @@ let virusAttributePool = {
         function () {
             // Removing the card...
             gameState.replicationSpeed--;
+        }),
+    "cytokine-neutralisation-blue": new VirusAttribute(
+        "Blue Cytokine Neutralisation",
+        "Cytokine Neutralisation",
+        "assets/cards/card-virus-cytokine-neutralisation-blue.png",
+        true, // oneshot
+        function () {
+            // Adding the card...
+            searchAndRemoveCytokineCard("Blue Cytokines");
+        },
+        function () {
+            // (Don't think this is possible for oneshots)
+        }),
+    "cytokine-neutralisation-green": new VirusAttribute(
+        "Green Cytokine Neutralisation",
+        "Cytokine Neutralisation",
+        "assets/cards/card-virus-cytokine-neutralisation-green.png",
+        true, // oneshot
+        function () {
+            // Adding the card...
+            searchAndRemoveCytokineCard("Green Cytokines");
+        },
+        function () {
+            // (Don't think this is possible for oneshots)
+        }),
+    "cytokine-neutralisation-red": new VirusAttribute(
+        "Red Cytokine Neutralisation",
+        "Cytokine Neutralisation",
+        "assets/cards/card-virus-cytokine-neutralisation-red.png",
+        true, // oneshot
+        function () {
+            // Adding the card...
+            searchAndRemoveCytokineCard("Red Cytokines");
+        },
+        function () {
+            // (Don't think this is possible for oneshots)
         }),
 }
 
@@ -921,17 +994,16 @@ function getAffectedCellsForCytokine(row, column) {
 
 function applyCytokineProtection(row, column) {
     let affectedCells = getAffectedCellsForCytokine(row, column);
-    gameState.interactionCard.affectedCells = affectedCells;
+    gameState.interactionCard.targetedCells = affectedCells;
     for (let coord of affectedCells) {
         gameState.grid[coord[0]][coord[1]].protectWith(gameState.interactionCard);
     }
 }
 
-function removeCytokineProtection(row, column) {
-    // TODO...
-    //for (let coord of affectedCells) {
-    //    gameState.grid[coord[0]][coord[1]].protectWith(gameState.interactionCard);
-    //}
+function removeCytokineProtection(card) {
+    for (let coord of card.targetedCells) {
+        gameState.grid[coord[0]][coord[1]].unprotect();
+    }
 }
 
 // Note these attributes should not be contain other objects? As we need to shallow clone them.
@@ -987,8 +1059,9 @@ let immuneAttributePool = {
             // Adding the card...
             applyCytokineProtection(row, column);
         },
-        function (row, column) {
+        function () {
             // Removing the card...
+            removeCytokineProtection(this);
         },
         function (row, column) {
             // Get affected cells
@@ -1011,8 +1084,9 @@ let immuneAttributePool = {
             // Adding the card...
             applyCytokineProtection(row, column);
         },
-        function (row, column) {
+        function () {
             // Removing the card...
+            removeCytokineProtection(this);
         },
         function (row, column) {
             // Get affected cells
@@ -1035,8 +1109,9 @@ let immuneAttributePool = {
             // Adding the card...
             applyCytokineProtection(row, column);
         },
-        function (row, column) {
+        function () {
             // Removing the card...
+            removeCytokineProtection(this);
         },
         function (row, column) {
             // Get affected cells
