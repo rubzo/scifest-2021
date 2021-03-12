@@ -146,6 +146,13 @@ a:visited {
     background-position: 15px 10px;
 }
 
+.virus-removal {
+    background-image: url("assets/virus-removal.png");
+    background-size: 60%;
+    background-repeat: no-repeat;
+    background-position: 15px 10px;
+}
+
 /*
 .tissueCellColumn:hover {
     padding: 2px;

@@ -119,6 +119,10 @@ class Cell {
         return this.tissue === tissue;
     }
 
+    removeInfection() {
+        this.state = CellStates.CLEAN;
+    }
+
     protectWith(card) {
         this.state = CellStates.PROTECTED;
         this.immuneCard = card;
@@ -702,6 +706,10 @@ function createCardClickHandler(gameCard, uiCard) {
 }
 
 function setupUIForPlayPhase() {
+    gameState.activeImmuneCards = gameState.activeImmuneCards.filter(c => !c.oneshot);
+    gameState.activeImmuneCardsChanged = true;
+    updateActiveCardPanel();
+
     let uiCards = $("#inactiveImmuneCardPanel").find(".cardContainer");
     let gameCards = gameState.inactiveImmuneCards;
     for (let index = 0; index < uiCards.length; index++) {
@@ -984,6 +992,11 @@ let immuneKindRules = {
         max: 8,
         unique: false,
     },
+    "T Cells": {
+        min: 0,
+        max: 8,
+        unique: false,
+    },
 }
 
 class ImmuneCard {
@@ -994,6 +1007,7 @@ class ImmuneCard {
         this.kind = this.constructor.kind;
         this.art = this.constructor.art;
         this.needsInteraction = this.constructor.needsInteraction;
+        this.oneshot = this.constructor.oneshot;
     }
 
     applyEffectsToLoc() {
@@ -1098,6 +1112,24 @@ class ImmuneCard {
             gameState.grid[coord[0]][coord[1]].unprotect();
         }
     }
+
+    getAffectedCellsForTCells(row, column) {
+        let affectedCells = [];
+        let firstColumn = TISSUE_WIDTH * (Math.floor(column / TISSUE_WIDTH));
+        for (let i = 0; i < TISSUE_WIDTH; i++) {
+            affectedCells.push([row, firstColumn + i]);
+        }
+        return affectedCells;
+    }
+
+    applyTCells(row, column) {
+        let affectedCells = this.getAffectedCellsForTCells(row, column);
+        for (let coord of affectedCells) {
+            if (gameState.grid[coord[0]][coord[1]].isInfected()) {
+                gameState.grid[coord[0]][coord[1]].removeInfection();
+            }
+        }
+    }
 }
 
 class Antiviral extends ImmuneCard {
@@ -1113,6 +1145,7 @@ Antiviral.title = "Antiviral";
 Antiviral.kind = "Antiviral";
 Antiviral.art = "assets/cards/card-immune-antiviral.png";
 Antiviral.needsInteraction = false;
+Antiviral.oneshot = false;
 
 class CytokinesBlue extends ImmuneCard {
     applyEffectsToLoc(row, column) {
@@ -1139,6 +1172,7 @@ CytokinesBlue.title = "Blue Cytokines";
 CytokinesBlue.kind = "Cytokines";
 CytokinesBlue.art = "assets/cards/card-immune-cytokines-blue.png";
 CytokinesBlue.needsInteraction = true;
+CytokinesBlue.oneshot = false;
 
 class CytokinesRed extends ImmuneCard {
     applyEffectsToLoc(row, column) {
@@ -1165,6 +1199,7 @@ CytokinesRed.title = "Red Cytokines";
 CytokinesRed.kind = "Cytokines";
 CytokinesRed.art = "assets/cards/card-immune-cytokines-red.png";
 CytokinesRed.needsInteraction = true;
+CytokinesRed.oneshot = false;
 
 class CytokinesGreen extends ImmuneCard {
     applyEffectsToLoc(row, column) {
@@ -1191,6 +1226,7 @@ CytokinesGreen.title = "Green Cytokines";
 CytokinesGreen.kind = "Cytokines";
 CytokinesGreen.art = "assets/cards/card-immune-cytokines-green.png";
 CytokinesGreen.needsInteraction = true;
+CytokinesGreen.oneshot = false;
 
 class AntibodiesLiver extends ImmuneCard {
     applyEffectsToLoc(row, column) {
@@ -1223,6 +1259,7 @@ AntibodiesLiver.title = "Liver Antibodies";
 AntibodiesLiver.kind = "Antibodies";
 AntibodiesLiver.art = "assets/cards/card-immune-antibodies-liver.png";
 AntibodiesLiver.needsInteraction = true;
+AntibodiesLiver.oneshot = false;
 
 class AntibodiesLung extends ImmuneCard {
     applyEffectsToLoc(row, column) {
@@ -1255,6 +1292,7 @@ AntibodiesLung.title = "Lung Antibodies";
 AntibodiesLung.kind = "Antibodies";
 AntibodiesLung.art = "assets/cards/card-immune-antibodies-lung.png";
 AntibodiesLung.needsInteraction = true;
+AntibodiesLung.oneshot = false;
 
 class AntibodiesIntestine extends ImmuneCard {
     applyEffectsToLoc(row, column) {
@@ -1287,6 +1325,85 @@ AntibodiesIntestine.title = "Intestine Antibodies";
 AntibodiesIntestine.kind = "Antibodies";
 AntibodiesIntestine.art = "assets/cards/card-immune-antibodies-intestine.png";
 AntibodiesIntestine.needsInteraction = true;
+AntibodiesIntestine.oneshot = false;
+
+class TCellsLiver extends ImmuneCard {
+    applyEffectsToLoc(row, column) {
+        this.applyTCells(row, column);
+    }
+
+    getAffectedCells(row, column) {
+        if (this.canPlaceHere(row, column)) {
+            return this.getAffectedCellsForTCells(row, column);
+        }
+        return [];
+    }
+
+    canPlaceHere(row, column) {
+        return gameState.grid[row][column].isTissue(Tissue.LIVER);
+    }
+
+    getEffectCSSClass() {
+        return "virus-removal";
+    }
+}
+TCellsLiver.title = "Liver T Cells";
+TCellsLiver.kind = "T Cells";
+TCellsLiver.art = "assets/cards/card-immune-t-cell-liver.png";
+TCellsLiver.needsInteraction = true;
+TCellsLiver.oneshot = true;
+
+class TCellsLung extends ImmuneCard {
+    applyEffectsToLoc(row, column) {
+        this.applyTCells(row, column);
+    }
+
+    getAffectedCells(row, column) {
+        if (this.canPlaceHere(row, column)) {
+            return this.getAffectedCellsForTCells(row, column);
+        }
+        return [];
+    }
+
+    canPlaceHere(row, column) {
+        return gameState.grid[row][column].isTissue(Tissue.LUNG);
+    }
+
+    getEffectCSSClass() {
+        return "virus-removal";
+    }
+}
+TCellsLung.title = "Lung T Cells";
+TCellsLung.kind = "T Cells";
+TCellsLung.art = "assets/cards/card-immune-t-cell-lung.png";
+TCellsLung.needsInteraction = true;
+TCellsLung.oneshot = true;
+
+class TCellsIntestine extends ImmuneCard {
+    applyEffectsToLoc(row, column) {
+        this.applyTCells(row, column);
+    }
+
+    getAffectedCells(row, column) {
+        if (this.canPlaceHere(row, column)) {
+            return this.getAffectedCellsForTCells(row, column);
+        }
+        return [];
+    }
+
+    canPlaceHere(row, column) {
+        return gameState.grid[row][column].isTissue(Tissue.INTESTINE);
+    }
+
+    getEffectCSSClass() {
+        return "virus-removal";
+    }
+}
+TCellsIntestine.title = "Intestine T Cells";
+TCellsIntestine.kind = "T Cells";
+TCellsIntestine.art = "assets/cards/card-immune-t-cell-intestine.png";
+TCellsIntestine.needsInteraction = true;
+TCellsIntestine.oneshot = true;
 
 let immuneCardClassPool = [
     Antiviral,
@@ -1296,4 +1413,7 @@ let immuneCardClassPool = [
     AntibodiesLiver,
     AntibodiesLung,
     AntibodiesIntestine,
+    TCellsLiver,
+    TCellsLung,
+    TCellsIntestine,
 ];
