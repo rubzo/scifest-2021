@@ -418,15 +418,12 @@ handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_DONE] = function () {
 
 handlers[PlayStates.PLAYER_DRAW_PHASE_READY] = function () {
     // TODO: we should only add cards that don't break card selection rules!!
-    let pool = Object.values(immuneCardPool);
-
     gameState.playerDraftPool = [];
     gameState.numCardsSelectedInDraftPool = 0;
 
     while (gameState.playerDraftPool.length < NUM_CARDS_TO_DRAFT_FROM_PER_TURN) {
-        let randomCard = randomElement(pool);
-        // This is only used to make all cards unique.
-        //randomCard.cardId = getNextCardId();
+        let randomCardClass = randomElement(immuneCardClassPool);
+        let randomCard = new randomCardClass();
         gameState.playerDraftPool.push(randomCard);
     }
 
@@ -534,16 +531,10 @@ function hideChooseCardPanel() {
 
 function getInteractiveDivForCard(card) {
     let div = null;
-    // TODO: temporary measure
-    let n = card.title;
-    if (n === undefined) {
-        n = card.name;
-    }
-
     if (card.art !== null) {
-        div = $(`<div class="cardContainer"><div class="card"><div class="cardText">${n}</div><div class="cardBlowUp hidden" style="background-image: url('${card.art}');"></div></div></div>`);
+        div = $(`<div class="cardContainer"><div class="card"><div class="cardText">${card.title}</div><div class="cardBlowUp hidden" style="background-image: url('${card.art}');"></div></div></div>`);
     } else {
-        div = $(`<div class="cardContainer"><div class="card"><div class="cardText">${n}</div></div></div>`);
+        div = $(`<div class="cardContainer"><div class="card"><div class="cardText">${card.title}</div></div></div>`);
     }
     div.mouseenter(function () {
         div.find(".cardBlowUp").removeClass("hidden");
@@ -590,8 +581,8 @@ function updateGridView() {
             if (gameState.grid[row][column].isInfected()) {
                 gridDivs[row][column].addClass("virus");
             } else if (gameState.grid[row][column].isProtected()) {
-                let effectClass = gameState.grid[row][column].getImmuneCard().getEffectClass();
-                gridDivs[row][column].addClass(effectClass);
+                let effectCSSClass = gameState.grid[row][column].getImmuneCard().getEffectCSSClass();
+                gridDivs[row][column].addClass(effectCSSClass);
             }
         }
     }
@@ -730,9 +721,9 @@ function setupUIForPlayPhase() {
 function onCellMouseenter(row, column) {
     return function () {
         let affectedCells = gameState.interactionCard.getAffectedCells(row, column);
-        let effectClass = gameState.interactionCard.getEffectClass()
+        let effectCSSClass = gameState.interactionCard.getEffectCSSClass()
         for (let coord of affectedCells) {
-            gridDivs[coord[0]][coord[1]].addClass(effectClass);
+            gridDivs[coord[0]][coord[1]].addClass(effectCSSClass);
         }
     }
 }
@@ -740,9 +731,9 @@ function onCellMouseenter(row, column) {
 function onCellMouseleave(row, column) {
     return function () {
         let affectedCells = gameState.interactionCard.getAffectedCells(row, column);
-        let effectClass = gameState.interactionCard.getEffectClass()
+        let effectCSSClass = gameState.interactionCard.getEffectCSSClass()
         for (let coord of affectedCells) {
-            gridDivs[coord[0]][coord[1]].removeClass(effectClass);
+            gridDivs[coord[0]][coord[1]].removeClass(effectCSSClass);
         }
     }
 }
@@ -751,7 +742,7 @@ function onCellClick(row, column) {
     return function () {
         // if legal
         if (gameState.interactionCard.canPlaceHere(row, column)) {
-            gameState.interactionCard.applyEffects(row, column);
+            gameState.interactionCard.applyEffectsToLoc(row, column);
             gameState.interactionCard = null;
             $("#boardText").addClass("gone");
             removeGridListeners();
@@ -818,8 +809,9 @@ function onLoad() {
 
 $(document).ready(onLoad);
 
-
+//
 // Virus Cards
+//
 let virusKindRules = {
     "Tropism": {
         min: 1,
@@ -849,17 +841,17 @@ class VirusCard {
     }
 
     applyEffects() {
-        console.log("WARNING: applyEffects not implemented for a card that needs it?");
+        console.log("WARNING: applyEffects not implemented for a virus card that needs it?");
     }
 
     removeEffects() {
-        console.log("WARNING: removeEffects not implemented for a card that needs it?");
+        console.log("WARNING: removeEffects not implemented for a virus card that needs it?");
     }
 
-    searchAndRemoveCytokineCard(cardName) {
+    searchAndRemoveCytokineCard(cardTitle) {
         let cytokineIndices = [];
         for (let i = 0; i < gameState.activeImmuneCards.length; i++) {
-            if (gameState.activeImmuneCards[i].name === cardName) {
+            if (gameState.activeImmuneCards[i].title === cardTitle) {
                 cytokineIndices.push(i);
             }
         }
@@ -875,19 +867,43 @@ class VirusCard {
     }
 }
 
-class LiverTropism extends VirusCard { }
+class LiverTropism extends VirusCard {
+    applyEffects() {
+
+    }
+
+    removeEffects() {
+        console.log("TODO: got to clear virus that was in the liver tissue");
+    }
+}
 LiverTropism.title = "Liver Tropism";
 LiverTropism.kind = "Tropism";
 LiverTropism.art = "assets/cards/card-virus-tropism-liver.png";
 LiverTropism.oneshot = false;
 
-class LungTropism extends VirusCard { }
+class LungTropism extends VirusCard {
+    applyEffects() {
+
+    }
+
+    removeEffects() {
+        console.log("TODO: got to clear virus that was in the lung tissue");
+    }
+}
 LungTropism.title = "Lung Tropism";
 LungTropism.kind = "Tropism";
 LungTropism.art = "assets/cards/card-virus-tropism-lung.png";
 LungTropism.oneshot = false;
 
-class IntestineTropism extends VirusCard { }
+class IntestineTropism extends VirusCard {
+    applyEffects() {
+
+    }
+
+    removeEffects() {
+        console.log("TODO: got to clear virus that was in the intestine tissue");
+    }
+}
 IntestineTropism.title = "Intestine Tropism";
 IntestineTropism.kind = "Tropism";
 IntestineTropism.art = "assets/cards/card-virus-tropism-intestine.png";
@@ -947,63 +963,7 @@ let virusCardClassPool = [
     RedCytokineNeutralisation,
 ]
 
-function getAffectedCellsForCytokine(row, column) {
-    let affectedCells = [];
-    if (!gameState.grid[row][column].isClean()) {
-        return [];
-    } else {
-        affectedCells.push([row, column]);
-    }
-    if (row != 0 && gameState.grid[row - 1][column].isClean()) {
-        affectedCells.push([row - 1, column]);
-    }
-    if (row != TISSUE_HEIGHT - 1 && gameState.grid[row + 1][column].isClean()) {
-        affectedCells.push([row + 1, column]);
-    }
-    if (column != 0
-        && gameState.grid[row][column - 1].isSameTissue(gameState.grid[row][column])
-        && gameState.grid[row][column - 1].isClean()) {
-        affectedCells.push([row, column - 1]);
-    }
-    if (column != ALL_TISSUE_WIDTH - 1
-        && gameState.grid[row][column + 1].isSameTissue(gameState.grid[row][column])
-        && gameState.grid[row][column + 1].isClean()) {
-        affectedCells.push([row, column + 1]);
-    }
-    return affectedCells;
-}
-
-function applyCytokineProtection(row, column) {
-    let affectedCells = getAffectedCellsForCytokine(row, column);
-    gameState.interactionCard.targetedCells = affectedCells;
-    for (let coord of affectedCells) {
-        gameState.grid[coord[0]][coord[1]].protectWith(gameState.interactionCard);
-    }
-}
-
-function removeCytokineProtection(card) {
-    for (let coord of card.targetedCells) {
-        gameState.grid[coord[0]][coord[1]].unprotect();
-    }
-}
-
-// Note these cards should not be contain other objects? As we need to shallow clone them.
-class ImmuneCard {
-    // TODO Already this is biting you, make it a proper class that gets subclassed!
-    constructor(name, kind, art, needsInteraction, applyEffects, removeEffects,
-        getAffectedCells, canPlaceHere, getEffectClass) {
-        this.name = name;
-        this.kind = kind;
-        this.art = art;
-        this.needsInteraction = needsInteraction;
-        this.applyEffects = applyEffects;
-        this.removeEffects = removeEffects;
-        this.getAffectedCells = getAffectedCells;
-        this.canPlaceHere = canPlaceHere;
-        this.getEffectClass = getEffectClass;
-    }
-}
-
+// Immune Cards
 let immuneKindRules = {
     "Antiviral": {
         min: 0,
@@ -1017,93 +977,179 @@ let immuneKindRules = {
     },
 }
 
-let immuneCardPool = {
-    "antiviral": new ImmuneCard(
-        "Antiviral",
-        "Antiviral",
-        "assets/cards/card-immune-antiviral.png",
-        false, // needsInteraction
-        function () {
-            // Adding the card...
-            gameState.replicationSpeed--;
-        },
-        function () {
-            // Removing the card...
-            gameState.replicationSpeed++;
-        }),
-    "cytokines-blue": new ImmuneCard(
-        "Blue Cytokines",
-        "Cytokines",
-        "assets/cards/card-immune-cytokines-blue.png",
-        true, // needsInteraction
-        function (row, column) {
-            // Adding the card...
-            applyCytokineProtection(row, column);
-        },
-        function () {
-            // Removing the card...
-            removeCytokineProtection(this);
-        },
-        function (row, column) {
-            // Get affected cells
-            return getAffectedCellsForCytokine(row, column);
-        },
-        function (row, column) {
-            // Can place here?
-            return gameState.grid[row][column].isClean();
-        },
-        function () {
-            // Get effect class
-            return "cytokine-blue"
-        }),
-    "cytokines-red": new ImmuneCard(
-        "Red Cytokines",
-        "Cytokines",
-        "assets/cards/card-immune-cytokines-red.png",
-        true, // needsInteraction
-        function (row, column) {
-            // Adding the card...
-            applyCytokineProtection(row, column);
-        },
-        function () {
-            // Removing the card...
-            removeCytokineProtection(this);
-        },
-        function (row, column) {
-            // Get affected cells
-            return getAffectedCellsForCytokine(row, column);
-        },
-        function (row, column) {
-            // Can place here?
-            return gameState.grid[row][column].isClean();
-        },
-        function () {
-            // Get effect class
-            return "cytokine-red"
-        }),
-    "cytokines-green": new ImmuneCard(
-        "Green Cytokines",
-        "Cytokines",
-        "assets/cards/card-immune-cytokines-green.png",
-        true, // needsInteraction
-        function (row, column) {
-            // Adding the card...
-            applyCytokineProtection(row, column);
-        },
-        function () {
-            // Removing the card...
-            removeCytokineProtection(this);
-        },
-        function (row, column) {
-            // Get affected cells
-            return getAffectedCellsForCytokine(row, column);
-        },
-        function (row, column) {
-            // Can place here?
-            return gameState.grid[row][column].isClean();
-        },
-        function () {
-            // Get effect class
-            return "cytokine-green"
-        }),
+class ImmuneCard {
+    constructor() {
+        this.cardId = cardIds++;
+        // Ughhhh apparently this is how we make 'static' data be visible in the instance!
+        this.title = this.constructor.title;
+        this.kind = this.constructor.kind;
+        this.art = this.constructor.art;
+        this.needsInteraction = this.constructor.needsInteraction;
+    }
+
+    applyEffectsToLoc() {
+        console.log("WARNING: applyEffectsToLoc not implemented for an immune card that needs it?");
+    }
+
+    applyEffects() {
+        console.log("WARNING: applyEffects not implemented for an immune card that needs it?");
+    }
+
+    removeEffects() {
+        console.log("WARNING: removeEffects not implemented for an immune card that needs it?");
+    }
+
+    getAffectedCells() {
+        console.log("WARNING: getAffectedCells not implemented for an immune card that needs it?");
+    }
+
+    canPlaceHere() {
+        console.log("WARNING: canPlaceHere not implemented for an immune card that needs it?");
+    }
+
+    getEffectCSSClass() {
+        console.log("WARNING: getEffectCSSClass not implemented for an immune card that needs it?");
+    }
+
+    getAffectedCellsForCytokine(row, column) {
+        let affectedCells = [];
+        if (!gameState.grid[row][column].isClean()) {
+            return [];
+        } else {
+            affectedCells.push([row, column]);
+        }
+        if (row != 0 && gameState.grid[row - 1][column].isClean()) {
+            affectedCells.push([row - 1, column]);
+        }
+        if (row != TISSUE_HEIGHT - 1 && gameState.grid[row + 1][column].isClean()) {
+            affectedCells.push([row + 1, column]);
+        }
+        if (column != 0
+            && gameState.grid[row][column - 1].isSameTissue(gameState.grid[row][column])
+            && gameState.grid[row][column - 1].isClean()) {
+            affectedCells.push([row, column - 1]);
+        }
+        if (column != ALL_TISSUE_WIDTH - 1
+            && gameState.grid[row][column + 1].isSameTissue(gameState.grid[row][column])
+            && gameState.grid[row][column + 1].isClean()) {
+            affectedCells.push([row, column + 1]);
+        }
+        return affectedCells;
+    }
+
+    applyCytokineProtection(row, column) {
+        let affectedCells = this.getAffectedCellsForCytokine(row, column);
+        gameState.interactionCard.targetedCells = affectedCells;
+        for (let coord of affectedCells) {
+            gameState.grid[coord[0]][coord[1]].protectWith(gameState.interactionCard);
+        }
+    }
+
+    removeCytokineProtection() {
+        if (this.targetedCells === undefined || this.targetedCells === null) {
+            console.log("called removeCytokineProtection on card that hadn't applied it?");
+        }
+        for (let coord of targetedCells) {
+            gameState.grid[coord[0]][coord[1]].unprotect();
+        }
+    }
 }
+
+class Antiviral extends ImmuneCard {
+    applyEffects() {
+        gameState.replicationSpeed--;
+    }
+
+    removeEffects() {
+        gameState.replicationSpeed++;
+    }
+}
+Antiviral.title = "Antiviral";
+Antiviral.kind = "Antiviral";
+Antiviral.art = "assets/cards/card-immune-antiviral.png";
+Antiviral.needsInteraction = false;
+
+class CytokinesBlue extends ImmuneCard {
+    applyEffectsToLoc(row, column) {
+        this.applyCytokineProtection(row, column);
+    }
+
+    removeEffects() {
+        this.removeCytokineProtection();
+    }
+
+    getAffectedCells(row, column) {
+        return this.getAffectedCellsForCytokine(row, column);
+    }
+
+    canPlaceHere(row, column) {
+        return gameState.grid[row][column].isClean();
+    }
+
+    getEffectCSSClass() {
+        return "cytokine-blue";
+    }
+}
+CytokinesBlue.title = "Blue Cytokines";
+CytokinesBlue.kind = "Cytokines";
+CytokinesBlue.art = "assets/cards/card-immune-cytokines-blue.png";
+CytokinesBlue.needsInteraction = true;
+
+class CytokinesRed extends ImmuneCard {
+    applyEffectsToLoc(row, column) {
+        this.applyCytokineProtection(row, column);
+    }
+
+    removeEffects() {
+        this.removeCytokineProtection();
+    }
+
+    getAffectedCells(row, column) {
+        return this.getAffectedCellsForCytokine(row, column);
+    }
+
+    canPlaceHere(row, column) {
+        return gameState.grid[row][column].isClean();
+    }
+
+    getEffectCSSClass() {
+        return "cytokine-red";
+    }
+}
+CytokinesRed.title = "Red Cytokines";
+CytokinesRed.kind = "Cytokines";
+CytokinesRed.art = "assets/cards/card-immune-cytokines-red.png";
+CytokinesRed.needsInteraction = true;
+
+class CytokinesGreen extends ImmuneCard {
+    applyEffectsToLoc(row, column) {
+        this.applyCytokineProtection(row, column);
+    }
+
+    removeEffects() {
+        this.removeCytokineProtection();
+    }
+
+    getAffectedCells(row, column) {
+        return this.getAffectedCellsForCytokine(row, column);
+    }
+
+    canPlaceHere(row, column) {
+        return gameState.grid[row][column].isClean();
+    }
+
+    getEffectCSSClass() {
+        return "cytokine-green";
+    }
+}
+CytokinesGreen.title = "Green Cytokines";
+CytokinesGreen.kind = "Cytokines";
+CytokinesGreen.art = "assets/cards/card-immune-cytokines-green.png";
+CytokinesGreen.needsInteraction = true;
+
+let immuneCardClassPool = [
+    Antiviral,
+    CytokinesBlue,
+    CytokinesRed,
+    CytokinesGreen,
+];
