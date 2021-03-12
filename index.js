@@ -115,6 +115,10 @@ class Cell {
         return this.tissue === other.tissue;
     }
 
+    isTissue(tissue) {
+        return this.tissue === tissue;
+    }
+
     protectWith(card) {
         this.state = CellStates.PROTECTED;
         this.immuneCard = card;
@@ -975,6 +979,11 @@ let immuneKindRules = {
         max: 8,
         unique: false,
     },
+    "Antibodies": {
+        min: 0,
+        max: 8,
+        unique: false,
+    },
 }
 
 class ImmuneCard {
@@ -1048,6 +1057,42 @@ class ImmuneCard {
     removeCytokineProtection() {
         if (this.targetedCells === undefined || this.targetedCells === null) {
             console.log("called removeCytokineProtection on card that hadn't applied it?");
+        }
+        for (let coord of this.targetedCells) {
+            gameState.grid[coord[0]][coord[1]].unprotect();
+        }
+    }
+
+    getAffectedCellsForAntibodies(row, column) {
+        let affectedCells = [];
+
+        let firstColumn = TISSUE_WIDTH * (Math.floor(column / TISSUE_WIDTH));
+
+        for (let i = 0; i < TISSUE_WIDTH; i++) {
+            let currentColumn = firstColumn + i;
+            if (gameState.grid[row][currentColumn].isInfected()) {
+                // Cannot ever place it where the virus is!
+                return [];
+            }
+            if (gameState.grid[row][currentColumn].isClean()) {
+                affectedCells.push([row, currentColumn]);
+            }
+        }
+
+        return affectedCells;
+    }
+
+    applyAntibodyProtection(row, column) {
+        let affectedCells = this.getAffectedCellsForAntibodies(row, column);
+        gameState.interactionCard.targetedCells = affectedCells;
+        for (let coord of affectedCells) {
+            gameState.grid[coord[0]][coord[1]].protectWith(gameState.interactionCard);
+        }
+    }
+
+    removeAntibodyProtection() {
+        if (this.targetedCells === undefined || this.targetedCells === null) {
+            console.log("called removeAntibodyProtection on card that hadn't applied it?");
         }
         for (let coord of targetedCells) {
             gameState.grid[coord[0]][coord[1]].unprotect();
@@ -1147,9 +1192,108 @@ CytokinesGreen.kind = "Cytokines";
 CytokinesGreen.art = "assets/cards/card-immune-cytokines-green.png";
 CytokinesGreen.needsInteraction = true;
 
+class AntibodiesLiver extends ImmuneCard {
+    applyEffectsToLoc(row, column) {
+        this.applyAntibodyProtection(row, column);
+    }
+
+    removeEffects() {
+        this.removeAntibodyProtection();
+    }
+
+    getAffectedCells(row, column) {
+        if (this.canPlaceHere(row, column)) {
+            return this.getAffectedCellsForAntibodies(row, column);
+        }
+        return [];
+    }
+
+    canPlaceHere(row, column) {
+        return (
+            gameState.grid[row][column].isClean()
+            && gameState.grid[row][column].isTissue(Tissue.LIVER)
+        );
+    }
+
+    getEffectCSSClass() {
+        return "antibodies-liver";
+    }
+}
+AntibodiesLiver.title = "Liver Antibodies";
+AntibodiesLiver.kind = "Antibodies";
+AntibodiesLiver.art = "assets/cards/card-immune-antibodies-liver.png";
+AntibodiesLiver.needsInteraction = true;
+
+class AntibodiesLung extends ImmuneCard {
+    applyEffectsToLoc(row, column) {
+        this.applyAntibodyProtection(row, column);
+    }
+
+    removeEffects() {
+        this.removeAntibodyProtection();
+    }
+
+    getAffectedCells(row, column) {
+        if (this.canPlaceHere(row, column)) {
+            return this.getAffectedCellsForAntibodies(row, column);
+        }
+        return [];
+    }
+
+    canPlaceHere(row, column) {
+        return (
+            gameState.grid[row][column].isClean()
+            && gameState.grid[row][column].isTissue(Tissue.LUNG)
+        );
+    }
+
+    getEffectCSSClass() {
+        return "antibodies-lung";
+    }
+}
+AntibodiesLung.title = "Lung Antibodies";
+AntibodiesLung.kind = "Antibodies";
+AntibodiesLung.art = "assets/cards/card-immune-antibodies-lung.png";
+AntibodiesLung.needsInteraction = true;
+
+class AntibodiesIntestine extends ImmuneCard {
+    applyEffectsToLoc(row, column) {
+        this.applyAntibodyProtection(row, column);
+    }
+
+    removeEffects() {
+        this.removeAntibodyProtection();
+    }
+
+    getAffectedCells(row, column) {
+        if (this.canPlaceHere(row, column)) {
+            return this.getAffectedCellsForAntibodies(row, column);
+        }
+        return [];
+    }
+
+    canPlaceHere(row, column) {
+        return (
+            gameState.grid[row][column].isClean()
+            && gameState.grid[row][column].isTissue(Tissue.INTESTINE)
+        );
+    }
+
+    getEffectCSSClass() {
+        return "antibodies-intestine";
+    }
+}
+AntibodiesIntestine.title = "Intestine Antibodies";
+AntibodiesIntestine.kind = "Antibodies";
+AntibodiesIntestine.art = "assets/cards/card-immune-antibodies-intestine.png";
+AntibodiesIntestine.needsInteraction = true;
+
 let immuneCardClassPool = [
     Antiviral,
     CytokinesBlue,
     CytokinesRed,
     CytokinesGreen,
+    AntibodiesLiver,
+    AntibodiesLung,
+    AntibodiesIntestine,
 ];

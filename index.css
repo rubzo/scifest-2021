@@ -125,6 +125,27 @@ a:visited {
     background-position: 15px 10px;
 }
 
+.antibodies-liver {
+    background-image: url("assets/antibodies-liver.png");
+    background-size: 60%;
+    background-repeat: no-repeat;
+    background-position: 15px 10px;
+}
+
+.antibodies-lung {
+    background-image: url("assets/antibodies-lung.png");
+    background-size: 60%;
+    background-repeat: no-repeat;
+    background-position: 15px 10px;
+}
+
+.antibodies-intestine {
+    background-image: url("assets/antibodies-intestine.png");
+    background-size: 60%;
+    background-repeat: no-repeat;
+    background-position: 15px 10px;
+}
+
 /*
 .tissueCellColumn:hover {
     padding: 2px;
