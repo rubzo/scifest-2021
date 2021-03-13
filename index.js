@@ -11,6 +11,21 @@ let STATE_TRANSITION_WAIT = 4000; // Make super slow for now, optimise later.
 let gridDivs = [];
 
 // General helpers
+function shuffle(ar) {
+    // https://stackoverflow.com/a/2450976
+    var currentIndex = ar.length, temporaryValue, randomIndex;
+
+    while (currentIndex != 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        temporaryValue = ar[currentIndex];
+        ar[currentIndex] = ar[randomIndex];
+        ar[randomIndex] = temporaryValue;
+    }
+
+    return ar;
+}
+
 function randomN(n) {
     return Math.floor(Math.random() * n);
 }
@@ -240,21 +255,96 @@ function findValidVirusSpawnPoints() {
 
 function generateInitialVirusCards() {
     let cards = [];
-    // Add all the virus cards that there must be a minimum number of!
-    // TODO: actually just spawn one or two tropisms based on difficulty!
-    for (var kindRuleName of Object.keys(virusKindRules)) {
-        let kindRule = virusKindRules[kindRuleName];
-        let added = 0;
-        while (added < kindRule.min) {
-            let filteredClassPool = virusCardClassPool.filter(cl => cl.kind == kindRuleName);
-            let randomCardClass = randomElement(filteredClassPool);
-            let randomCard = new randomCardClass();
-            cards.push(randomCard);
-            added++;
-        }
+
+    // Currently, just give 2 Tropisms
+    let tropismCardClassPool = shuffle(virusCardClassPool.filter(cl => cl.kind === "Tropism"));
+    for (let i = 0; i < 2; i++) {
+        let newCardClass = tropismCardClassPool[i];
+        let newCard = new newCardClass();
+        cards.push(newCard);
     }
 
     return cards;
+}
+
+function getSuitableNewVirusCardClass() {
+    let done = false;
+
+    let newCardClass = null;
+
+    while (!done) {
+        newCardClass = randomElement(virusCardClassPool);
+
+        if (newCardClass.kind === "Tropism") {
+            // It cannot be a tropism card the virus already has!
+            let currentTropismCards = gameState.virusCards.filter(c => c.kind === "Tropism");
+            if (currentTropismCards.length == 3) {
+                // We actually have all of them, so pick a different one.
+                continue;
+            } else {
+                let tropismCardClassPool = virusCardClassPool.filter(cl => cl.kind === "Tropism");
+                while (currentTropismCards.filter(c => c.title === newCardClass.title).length > 0) {
+                    newCardClass = randomElement(tropismCardClassPool);
+                }
+                done = true;
+            }
+        } else if (newCardClass.kind === "Cytokine Neutralisation") {
+            // Does the player have any cytokines? If so, make sure we play one they have.
+            // Otherwise, go around again (we're being aggressive.)
+            let immuneCytokineCards = gameState.activeImmuneCards.filter(c => c.kind == "Cytokines");
+            if (immuneCytokineCards.length > 0) {
+                let randomCytokineCard = randomElement(immuneCytokineCards);
+                switch (randomCytokineCard.title) {
+                    case "Red Cytokines":
+                        newCardClass = RedCytokineNeutralisation;
+                        break;
+                    case "Blue Cytokines":
+                        newCardClass = BlueCytokineNeutralisation;
+                        break;
+                    case "Green Cytokines":
+                        newCardClass = GreenCytokineNeutralisation;
+                        break;
+                }
+                done = true;
+            }
+        } else if (newCardClass.kind === "Antibodies Escape") {
+            // Does the player have any antibodies? If so, make sure we play one they have.
+            let immuneAntibodiesCards = gameState.activeImmuneCards.filter(c => c.kind == "Antibodies");
+            if (immuneAntibodiesCards.length > 0) {
+                let randomAntibodiesCard = randomElement(immuneAntibodiesCards);
+                switch (randomAntibodiesCard.title) {
+                    case "Liver Antibodies":
+                        newCardClass = AntibodiesEscapeLiver;
+                        break;
+                    case "Lung Antibodies":
+                        newCardClass = AntibodiesEscapeLung;
+                        break;
+                    case "Intestine Antibodies":
+                        newCardClass = AntibodiesEscapeIntestine;
+                        break;
+                }
+                done = true;
+            }
+        } else {
+            done = true;
+        }
+    }
+
+    return newCardClass;
+}
+
+function getSuitableVirusCardToRemove() {
+    let done = false;
+
+    while (!done) {
+        let cardToRemove = randomElement(gameState.virusCards);
+        if (cardToRemove.kind === "Tropism"
+            && gameState.virusCards.filter(c => c.kind === "Tropism").length == 1) {
+
+            continue;
+        }
+        done = true;
+    }
 }
 
 function mutateVirus() {
@@ -262,10 +352,9 @@ function mutateVirus() {
     gameState.virusCards = gameState.virusCards.filter(c => !c.oneshot);
     gameState.virusCardsChanged = true;
 
-    // TODO: make this obey the virus rules
-    if (percentChance(98)) {
-        // adding...
-        let newCardClass = randomElement(virusCardClassPool);
+    if (percentChance(80) || gameState.virusCards.length == 1) {
+        // Add a new card...
+        let newCardClass = getSuitableNewVirusCardClass();
         let newCard = new newCardClass();
         newCard.applyEffects()
         gameState.virusCards.push(newCard);
@@ -276,8 +365,8 @@ function mutateVirus() {
             toastMessage(`The virus gained ${newCard.title}!`)
         }
     } else {
-        // removing...
-        let cardToRemove = randomElement(gameState.virusCards);
+        // Remove a card...
+        let cardToRemove = getSuitableVirusCardToRemove();
         let newVirusCards = gameState.virusCards.filter(c => c != cardToRemove);
         gameState.virusCards = newVirusCards;
         gameState.virusCardsChanged = true;
@@ -288,20 +377,9 @@ function mutateVirus() {
 }
 
 function placeVirusBasedOnCards() {
-    let loc = -1;
-    let tropismCard = randomElement(gameState.virusCards.filter(c => c.kind == "Tropism"));
-    switch (tropismCard.title) {
-        case "Liver Tropism":
-            loc = randomN(TISSUE_WIDTH);
-            break;
-        case "Lung Tropism":
-            loc = (TISSUE_WIDTH * 1) + randomN(TISSUE_WIDTH);
-            break;
-        case "Intestine Tropism":
-            loc = (TISSUE_WIDTH * 2) + randomN(TISSUE_WIDTH);
-            break;
-    }
-    placeVirusOnGrid(0, loc);
+    gameState.virusCards.forEach(function (card, _) {
+        card.applyEffects();
+    });
 }
 
 function switchPlayState(newState) {
@@ -448,7 +526,7 @@ handlers[PlayStates.PLAYER_PLAY_PHASE_DONE] = function () {
 }
 
 handlers[PlayStates.VIRUS_MUTATION_READY] = function () {
-    if (percentChance(90)) {
+    if (percentChance(60)) {
         switchPlayState(PlayStates.VIRUS_MUTATION_ACTIVE);
     } else {
         switchPlayState(PlayStates.VIRUS_MUTATION_DONE);
@@ -812,24 +890,6 @@ $(document).ready(onLoad);
 //
 // Virus Cards
 //
-let virusKindRules = {
-    "Tropism": {
-        min: 1,
-        max: 3,
-        unique: true,
-    },
-    "Antiviral Resistance": {
-        min: 0,
-        max: 5,
-        unique: false,
-    },
-    "Cytokine Neutralisation": {
-        min: 0,
-        max: 5,
-        unique: false,
-    }
-}
-
 class VirusCard {
     constructor() {
         this.cardId = cardIds++;
@@ -883,7 +943,7 @@ class VirusCard {
 
 class LiverTropism extends VirusCard {
     applyEffects() {
-
+        placeVirusOnGrid(0, Math.floor(TISSUE_WIDTH / 2));
     }
 
     removeEffects() {
@@ -897,7 +957,7 @@ LiverTropism.oneshot = false;
 
 class LungTropism extends VirusCard {
     applyEffects() {
-
+        placeVirusOnGrid(0, TISSUE_WIDTH + Math.floor(TISSUE_WIDTH / 2));
     }
 
     removeEffects() {
@@ -911,7 +971,7 @@ LungTropism.oneshot = false;
 
 class IntestineTropism extends VirusCard {
     applyEffects() {
-
+        placeVirusOnGrid(0, (TISSUE_WIDTH * 2) + Math.floor(TISSUE_WIDTH / 2));
     }
 
     removeEffects() {
@@ -1011,29 +1071,6 @@ let virusCardClassPool = [
 ]
 
 // Immune Cards
-let immuneKindRules = {
-    "Antiviral": {
-        min: 0,
-        max: 8,
-        unique: false,
-    },
-    "Cytokines": {
-        min: 0,
-        max: 8,
-        unique: false,
-    },
-    "Antibodies": {
-        min: 0,
-        max: 8,
-        unique: false,
-    },
-    "T Cells": {
-        min: 0,
-        max: 8,
-        unique: false,
-    },
-}
-
 class ImmuneCard {
     constructor() {
         this.cardId = cardIds++;
