@@ -263,37 +263,26 @@ function mutateVirus() {
     gameState.virusCardsChanged = true;
 
     // TODO: make this obey the virus rules
-    if (percentChance(90)) {
+    if (percentChance(98)) {
         // adding...
         let newCardClass = randomElement(virusCardClassPool);
         let newCard = new newCardClass();
         newCard.applyEffects()
         gameState.virusCards.push(newCard);
         gameState.virusCardsChanged = true;
-        toastMessage(`Virus gained ${newCard.title}!`)
-    } else {
-        if (percentChance(80)) {
-            // replacing...
-            let cardToReplace = randomElement(gameState.virusCards);
-            let newVirusCards = gameState.virusCards.filter(c => c != cardToReplace);
-            let filteredClassPool = virusCardClassPool.filter(cl => cl.kind == cardToReplace.kind);
-            let replacementCardClass = randomElement(filteredClassPool);
-            let replacementCard = new replacementCardClass();
-            newVirusCards.push(replacementCard);
-            gameState.virusCards = newVirusCards;
-            gameState.virusCardsChanged = true;
-            cardToReplace.removeEffects();
-            replacementCard.applyEffects();
-            toastMessage(`Virus lost ${cardToReplace.title}, and gained ${replacementCard.title}!`)
+        if (newCard.oneshot) {
+            toastMessage(`The virus played ${newCard.title}!`)
         } else {
-            // removing...
-            let cardToRemove = randomElement(gameState.virusCards);
-            let newVirusCards = gameState.virusCards.filter(c => c != cardToRemove);
-            gameState.virusCards = newVirusCards;
-            gameState.virusCardsChanged = true;
-            cardToRemove.removeEffects();
-            toastMessage(`Virus lost ${cardToRemove.title}!`)
+            toastMessage(`The virus gained ${newCard.title}!`)
         }
+    } else {
+        // removing...
+        let cardToRemove = randomElement(gameState.virusCards);
+        let newVirusCards = gameState.virusCards.filter(c => c != cardToRemove);
+        gameState.virusCards = newVirusCards;
+        gameState.virusCardsChanged = true;
+        cardToRemove.removeEffects();
+        toastMessage(`The virus lost ${cardToRemove.title}!`)
     }
     updateUI();
 }
@@ -389,7 +378,7 @@ function finishedHandlingState(delay) {
 handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_READY] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_ACTIVE);
-    toastMessage("Virus is trying to spread to other cells!");
+    toastMessage("The virus is spreading!");
     finishedHandlingState(500);
 }
 
@@ -420,8 +409,7 @@ handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_ACTIVE] = function () {
 handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_DONE] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.PLAYER_DRAW_PHASE_READY);
-    toastMessage("Virus has finished spreading for now!");
-    finishedHandlingState();
+    finishedHandlingState(500);
 }
 
 handlers[PlayStates.PLAYER_DRAW_PHASE_READY] = function () {
@@ -860,18 +848,32 @@ class VirusCard {
         console.log("WARNING: removeEffects not implemented for a virus card that needs it?");
     }
 
-    searchAndRemoveCytokineCard(cardTitle) {
-        let cytokineIndices = [];
-        for (let i = 0; i < gameState.activeImmuneCards.length; i++) {
-            if (gameState.activeImmuneCards[i].title === cardTitle) {
-                cytokineIndices.push(i);
-            }
-        }
-        if (cytokineIndices.length > 0) {
-            let indexToRemove = randomElement(cytokineIndices);
-            let cardToRemove = gameState.activeImmuneCards[indexToRemove];
+    searchAndRemoveRandomImmuneCardWithTitle(cardTitle) {
+        let affectedCards = gameState.activeImmuneCards.filter(c => c.title === cardTitle);
+
+        if (affectedCards.length > 0) {
+            let cardToRemove = randomElement(affectedCards);
+            let remainingCards = gameState.activeImmuneCards.filter(c => c.cardId != cardToRemove.cardId);
+
             cardToRemove.removeEffects();
-            gameState.activeImmuneCards.splice(indexToRemove, 1);
+
+            gameState.activeImmuneCards = remainingCards;
+            gameState.activeImmuneCardsChanged = true;
+            updateActiveCardPanel();
+            updateGridView();
+        }
+    }
+
+    searchAndRemoveAllImmuneCardsWithTitle(cardTitle) {
+        let affectedCards = gameState.activeImmuneCards.filter(c => c.title === cardTitle);
+        let remainingCards = gameState.activeImmuneCards.filter(c => c.title != cardTitle);
+
+        affectedCards.forEach(function (card, _) {
+            card.removeEffects();
+        });
+
+        if (affectedCards.length > 0) {
+            gameState.activeImmuneCards = remainingCards;
             gameState.activeImmuneCardsChanged = true;
             updateActiveCardPanel();
             updateGridView();
@@ -937,7 +939,7 @@ AntiviralResistance.oneshot = false;
 
 class BlueCytokineNeutralisation extends VirusCard {
     applyEffects() {
-        this.searchAndRemoveCytokineCard("Blue Cytokines");
+        this.searchAndRemoveRandomImmuneCardWithTitle("Blue Cytokines");
     }
 }
 BlueCytokineNeutralisation.title = "Blue Cytokine Neutralisation";
@@ -947,7 +949,7 @@ BlueCytokineNeutralisation.oneshot = true;
 
 class GreenCytokineNeutralisation extends VirusCard {
     applyEffects() {
-        this.searchAndRemoveCytokineCard("Green Cytokines");
+        this.searchAndRemoveRandomImmuneCardWithTitle("Green Cytokines");
     }
 }
 GreenCytokineNeutralisation.title = "Green Cytokine Neutralisation";
@@ -957,13 +959,43 @@ GreenCytokineNeutralisation.oneshot = true;
 
 class RedCytokineNeutralisation extends VirusCard {
     applyEffects() {
-        this.searchAndRemoveCytokineCard("Red Cytokines");
+        this.searchAndRemoveRandomImmuneCardWithTitle("Red Cytokines");
     }
 }
 RedCytokineNeutralisation.title = "Red Cytokine Neutralisation";
 RedCytokineNeutralisation.kind = "Cytokine Neutralisation";
 RedCytokineNeutralisation.art = "assets/cards/card-virus-cytokine-neutralisation-red.png";
 RedCytokineNeutralisation.oneshot = true;
+
+class AntibodiesEscapeLiver extends VirusCard {
+    applyEffects() {
+        this.searchAndRemoveAllImmuneCardsWithTitle("Liver Antibodies");
+    }
+}
+AntibodiesEscapeLiver.title = "Antibodies Escape Liver";
+AntibodiesEscapeLiver.kind = "Antibodies Escape";
+AntibodiesEscapeLiver.art = "assets/cards/card-virus-antibodies-escape-liver.png";
+AntibodiesEscapeLiver.oneshot = true;
+
+class AntibodiesEscapeLung extends VirusCard {
+    applyEffects() {
+        this.searchAndRemoveAllImmuneCardsWithTitle("Lung Antibodies");
+    }
+}
+AntibodiesEscapeLung.title = "Antibodies Escape Lung";
+AntibodiesEscapeLung.kind = "Antibodies Escape";
+AntibodiesEscapeLung.art = "assets/cards/card-virus-antibodies-escape-lung.png";
+AntibodiesEscapeLung.oneshot = true;
+
+class AntibodiesEscapeIntestine extends VirusCard {
+    applyEffects() {
+        this.searchAndRemoveAllImmuneCardsWithTitle("Intestine Antibodies");
+    }
+}
+AntibodiesEscapeIntestine.title = "Antibodies Escape Intestine";
+AntibodiesEscapeIntestine.kind = "Antibodies Escape";
+AntibodiesEscapeIntestine.art = "assets/cards/card-virus-antibodies-escape-intestine.png";
+AntibodiesEscapeIntestine.oneshot = true;
 
 let virusCardClassPool = [
     LiverTropism,
@@ -973,6 +1005,9 @@ let virusCardClassPool = [
     BlueCytokineNeutralisation,
     GreenCytokineNeutralisation,
     RedCytokineNeutralisation,
+    AntibodiesEscapeLiver,
+    AntibodiesEscapeLung,
+    AntibodiesEscapeIntestine,
 ]
 
 // Immune Cards
@@ -1108,7 +1143,7 @@ class ImmuneCard {
         if (this.targetedCells === undefined || this.targetedCells === null) {
             console.log("called removeAntibodyProtection on card that hadn't applied it?");
         }
-        for (let coord of targetedCells) {
+        for (let coord of this.targetedCells) {
             gameState.grid[coord[0]][coord[1]].unprotect();
         }
     }

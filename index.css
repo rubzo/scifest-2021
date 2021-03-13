@@ -353,7 +353,7 @@ a:visited {
     padding: 16px; /* Padding */
     position: fixed; /* Sit on top of the screen */
     z-index: 8;
-    top: 25%;
+    top: 40%;
 
     box-shadow: 0 12px 20px 0 rgba(0, 0, 0, 0.5);
 }
@@ -366,10 +366,10 @@ a:visited {
 
 @-webkit-keyframes cardDisplayFadein {
   from {top: 10%; opacity: 0;}
-  to {top: 25%; opacity: 1;}
+  to {top: 40%; opacity: 1;}
 }
 
 @keyframes cardDisplayFadein {
-  from {top: 0; opacity: 0;}
-  to {top: 25%; opacity: 1;}
+  from {top: 10%; opacity: 0;}
+  to {top: 40%; opacity: 1;}
 }
