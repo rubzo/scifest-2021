@@ -335,9 +335,10 @@ function getSuitableNewVirusCardClass() {
 
 function getSuitableVirusCardToRemove() {
     let done = false;
+    let cardToRemove = null;
 
     while (!done) {
-        let cardToRemove = randomElement(gameState.virusCards);
+        cardToRemove = randomElement(gameState.virusCards);
         if (cardToRemove.kind === "Tropism"
             && gameState.virusCards.filter(c => c.kind === "Tropism").length == 1) {
 
@@ -345,6 +346,8 @@ function getSuitableVirusCardToRemove() {
         }
         done = true;
     }
+
+    return cardToRemove;
 }
 
 function mutateVirus() {
