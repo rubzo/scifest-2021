@@ -171,8 +171,10 @@ function generateGameStateGrid() {
     return grid;
 }
 
-function placeVirusOnGrid(row, column) {
-    gameState.grid[row][column].markInfected();
+function placeVirusOnGridIfClean(row, column) {
+    if (gameState.grid[row][column].isClean()) {
+        gameState.grid[row][column].markInfected();
+    }
 }
 
 
@@ -475,7 +477,7 @@ handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_ACTIVE] = function () {
                 if (virusSpawnPoints.length != 0) {
                     let newSpawnLoc = randomElement(virusSpawnPoints);
                     //toastMessage("Virus has replicated!");
-                    placeVirusOnGrid(newSpawnLoc[0], newSpawnLoc[1]);
+                    placeVirusOnGridIfClean(newSpawnLoc[0], newSpawnLoc[1]);
                 }
             } else {
                 //toastMessage("Virus is continuing to try to replicate...");
@@ -568,7 +570,7 @@ handlers[PlayStates.VIRUS_MOVES_DOWN_ACTIVE] = function () {
                 let virusAttackPoints = findValidVirusAttackPoints();
                 let newSpawnLoc = randomElement(virusAttackPoints);
                 //toastMessage("Virus has attacked!");
-                placeVirusOnGrid(newSpawnLoc[0], newSpawnLoc[1]);
+                placeVirusOnGridIfClean(newSpawnLoc[0], newSpawnLoc[1]);
             } else {
                 //toastMessage("Virus is continuing to try to attack...");
             }
@@ -946,7 +948,7 @@ class VirusCard {
 
 class LiverTropism extends VirusCard {
     applyEffects() {
-        placeVirusOnGrid(0, Math.floor(TISSUE_WIDTH / 2));
+        placeVirusOnGridIfClean(0, Math.floor(TISSUE_WIDTH / 2));
     }
 
     removeEffects() {
@@ -960,7 +962,7 @@ LiverTropism.oneshot = false;
 
 class LungTropism extends VirusCard {
     applyEffects() {
-        placeVirusOnGrid(0, TISSUE_WIDTH + Math.floor(TISSUE_WIDTH / 2));
+        placeVirusOnGridIfClean(0, TISSUE_WIDTH + Math.floor(TISSUE_WIDTH / 2));
     }
 
     removeEffects() {
@@ -974,7 +976,7 @@ LungTropism.oneshot = false;
 
 class IntestineTropism extends VirusCard {
     applyEffects() {
-        placeVirusOnGrid(0, (TISSUE_WIDTH * 2) + Math.floor(TISSUE_WIDTH / 2));
+        placeVirusOnGridIfClean(0, (TISSUE_WIDTH * 2) + Math.floor(TISSUE_WIDTH / 2));
     }
 
     removeEffects() {
