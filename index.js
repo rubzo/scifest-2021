@@ -749,13 +749,14 @@ function makeCardActive(card) {
 }
 
 function playCardUISide(gameCard, uiCard) {
-    if (!gameCard.needsInteraction) {
+    if (gameCard.causesStateChange) {
         gameCard.applyEffects();
         makeCardActive(gameCard);
         $(uiCard).remove();
         updateActiveCardPanel();
         updateOtherData();
-    } else {
+        finishedHandlingState(5);
+    } else if (gameCard.needsInteraction) {
         $("#boardText").text("Where should this card be played?");
         $("#boardText").removeClass("gone");
 
@@ -766,6 +767,12 @@ function playCardUISide(gameCard, uiCard) {
         updateActiveCardPanel();
         switchPlayState(PlayStates.PLAYER_PLAY_PHASE_INTERACTING);
         finishedHandlingState(5);
+    } else {
+        gameCard.applyEffects();
+        makeCardActive(gameCard);
+        $(uiCard).remove();
+        updateActiveCardPanel();
+        updateOtherData();
     }
 }
 
@@ -952,9 +959,7 @@ class LiverTropism extends VirusCard {
         placeVirusOnGridIfClean(0, Math.floor(TISSUE_WIDTH / 2));
     }
 
-    removeEffects() {
-        console.log("TODO: got to clear virus that was in the liver tissue");
-    }
+    removeEffects() { }
 }
 LiverTropism.title = "Liver Tropism";
 LiverTropism.kind = "Tropism";
@@ -966,9 +971,7 @@ class LungTropism extends VirusCard {
         placeVirusOnGridIfClean(0, TISSUE_WIDTH + Math.floor(TISSUE_WIDTH / 2));
     }
 
-    removeEffects() {
-        console.log("TODO: got to clear virus that was in the lung tissue");
-    }
+    removeEffects() { }
 }
 LungTropism.title = "Lung Tropism";
 LungTropism.kind = "Tropism";
@@ -980,9 +983,7 @@ class IntestineTropism extends VirusCard {
         placeVirusOnGridIfClean(0, (TISSUE_WIDTH * 2) + Math.floor(TISSUE_WIDTH / 2));
     }
 
-    removeEffects() {
-        console.log("TODO: got to clear virus that was in the intestine tissue");
-    }
+    removeEffects() { }
 }
 IntestineTropism.title = "Intestine Tropism";
 IntestineTropism.kind = "Tropism";
@@ -1086,6 +1087,7 @@ class ImmuneCard {
         this.art = this.constructor.art;
         this.needsInteraction = this.constructor.needsInteraction;
         this.oneshot = this.constructor.oneshot;
+        this.causesStateChange = this.constructor.causesStateChange;
     }
 
     applyEffectsToLoc() {
@@ -1224,6 +1226,7 @@ Antiviral.kind = "Antiviral";
 Antiviral.art = "assets/cards/card-immune-antiviral.png";
 Antiviral.needsInteraction = false;
 Antiviral.oneshot = false;
+Antiviral.causesStateChange = false;
 
 class CytokinesBlue extends ImmuneCard {
     applyEffectsToLoc(row, column) {
@@ -1251,6 +1254,7 @@ CytokinesBlue.kind = "Cytokines";
 CytokinesBlue.art = "assets/cards/card-immune-cytokines-blue.png";
 CytokinesBlue.needsInteraction = true;
 CytokinesBlue.oneshot = false;
+CytokinesBlue.causesStateChange = false;
 
 class CytokinesRed extends ImmuneCard {
     applyEffectsToLoc(row, column) {
@@ -1278,6 +1282,7 @@ CytokinesRed.kind = "Cytokines";
 CytokinesRed.art = "assets/cards/card-immune-cytokines-red.png";
 CytokinesRed.needsInteraction = true;
 CytokinesRed.oneshot = false;
+CytokinesRed.causesStateChange = false;
 
 class CytokinesGreen extends ImmuneCard {
     applyEffectsToLoc(row, column) {
@@ -1305,6 +1310,7 @@ CytokinesGreen.kind = "Cytokines";
 CytokinesGreen.art = "assets/cards/card-immune-cytokines-green.png";
 CytokinesGreen.needsInteraction = true;
 CytokinesGreen.oneshot = false;
+CytokinesGreen.causesStateChange = false;
 
 class AntibodiesLiver extends ImmuneCard {
     applyEffectsToLoc(row, column) {
@@ -1338,6 +1344,7 @@ AntibodiesLiver.kind = "Antibodies";
 AntibodiesLiver.art = "assets/cards/card-immune-antibodies-liver.png";
 AntibodiesLiver.needsInteraction = true;
 AntibodiesLiver.oneshot = false;
+AntibodiesLiver.causesStateChange = false;
 
 class AntibodiesLung extends ImmuneCard {
     applyEffectsToLoc(row, column) {
@@ -1371,6 +1378,7 @@ AntibodiesLung.kind = "Antibodies";
 AntibodiesLung.art = "assets/cards/card-immune-antibodies-lung.png";
 AntibodiesLung.needsInteraction = true;
 AntibodiesLung.oneshot = false;
+AntibodiesLung.causesStateChange = false;
 
 class AntibodiesIntestine extends ImmuneCard {
     applyEffectsToLoc(row, column) {
@@ -1404,6 +1412,7 @@ AntibodiesIntestine.kind = "Antibodies";
 AntibodiesIntestine.art = "assets/cards/card-immune-antibodies-intestine.png";
 AntibodiesIntestine.needsInteraction = true;
 AntibodiesIntestine.oneshot = false;
+AntibodiesIntestine.causesStateChange = false;
 
 class TCellsLiver extends ImmuneCard {
     applyEffectsToLoc(row, column) {
@@ -1456,6 +1465,7 @@ TCellsLung.kind = "T Cells";
 TCellsLung.art = "assets/cards/card-immune-t-cell-lung.png";
 TCellsLung.needsInteraction = true;
 TCellsLung.oneshot = true;
+TCellsLung.causesStateChange = false;
 
 class TCellsIntestine extends ImmuneCard {
     applyEffectsToLoc(row, column) {
@@ -1482,6 +1492,20 @@ TCellsIntestine.kind = "T Cells";
 TCellsIntestine.art = "assets/cards/card-immune-t-cell-intestine.png";
 TCellsIntestine.needsInteraction = true;
 TCellsIntestine.oneshot = true;
+TCellsIntestine.causesStateChange = false;
+
+class NucleotideSensing extends ImmuneCard {
+    applyEffects() {
+        // We should go back to the 'draw phase' basically.
+        switchPlayState(PlayStates.PLAYER_DRAW_PHASE_READY);
+    }
+}
+NucleotideSensing.title = "DNA/RNA Sensing";
+NucleotideSensing.kind = "Sensing";
+NucleotideSensing.art = "assets/cards/card-immune-nucleotide-sensing.png";
+NucleotideSensing.needsInteraction = false;
+NucleotideSensing.oneshot = true;
+NucleotideSensing.causesStateChange = true;
 
 let immuneCardClassPool = [
     Antiviral,
@@ -1494,4 +1518,5 @@ let immuneCardClassPool = [
     TCellsLiver,
     TCellsLung,
     TCellsIntestine,
+    NucleotideSensing,
 ];
