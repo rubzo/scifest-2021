@@ -433,12 +433,7 @@ function playerDraftedCard(card) {
 }
 
 function checkIfFinishedDrafting() {
-    if (gameState.numCardsSelectedInDraftPool == NUM_CARDS_TO_SELECT_IN_DRAFT_PER_TURN) {
-        switchPlayState(PlayStates.PLAYER_DRAW_PHASE_DONE);
-        finishedHandlingState();
-        return true;
-    }
-    return false;
+    return gameState.numCardsSelectedInDraftPool == NUM_CARDS_TO_SELECT_IN_DRAFT_PER_TURN;
 }
 
 //
@@ -461,7 +456,7 @@ function finishedHandlingState(delay) {
 handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_READY] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_ACTIVE);
-    toastMessage("The virus is spreading!");
+    toastMessage("The virus is spreading out!");
     finishedHandlingState(500);
 }
 
@@ -513,9 +508,8 @@ handlers[PlayStates.PLAYER_DRAW_PHASE_READY] = function () {
 }
 
 handlers[PlayStates.PLAYER_DRAW_PHASE_DONE] = function () {
-    hideChooseCardPanel();
     switchPlayState(PlayStates.PLAYER_PLAY_PHASE_READY);
-    finishedHandlingState();
+    finishedHandlingState(500);
 }
 
 handlers[PlayStates.PLAYER_PLAY_PHASE_READY] = function () {
@@ -553,7 +547,7 @@ handlers[PlayStates.VIRUS_MUTATION_DONE] = function () {
 handlers[PlayStates.VIRUS_MOVES_DOWN_READY] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.VIRUS_MOVES_DOWN_ACTIVE);
-    toastMessage("Virus is trying to attack!");
+    toastMessage("The virus is trying to spread down!");
     finishedHandlingState(700);
 }
 
@@ -563,7 +557,7 @@ handlers[PlayStates.VIRUS_MOVES_DOWN_ACTIVE] = function () {
     } else {
         if (virusHasWon()) {
             switchPlayState(PlayStates.BODY_DEFEATED);
-        } else if (!doesVirusHaveAnyAttackPoints()) {
+        } else if (!doesVirusHaveAnyAttackPoints() && !doesVirusHaveAnySpawnPoints()) {
             switchPlayState(PlayStates.VIRUS_DEFEATED);
         } else {
             if (coinFlip()) {
@@ -584,7 +578,7 @@ handlers[PlayStates.VIRUS_MOVES_DOWN_ACTIVE] = function () {
 handlers[PlayStates.VIRUS_MOVES_DOWN_DONE] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_READY);
-    toastMessage("Virus has finished attacking for now!");
+    toastMessage("The virus has finished spreading down!");
     finishedHandlingState();
 }
 
@@ -625,13 +619,13 @@ function getInteractiveDivForCard(card) {
 }
 
 function showLossScreen() {
-    $("#chooseCardMsg").text("The immune system was overcome...");
+    $("#chooseCardMsg").text("The virus has taken over - you lose!");
     $("#chooseCardPanel").empty();
     $("#chooseCardDisplay").addClass("show");
 }
 
 function showWinScreen() {
-    $("#chooseCardMsg").text("You successfully fought off the virus!");
+    $("#chooseCardMsg").text("You have contained the virus - you win!");
     $("#chooseCardPanel").empty();
     $("#chooseCardDisplay").addClass("show");
 }
@@ -668,7 +662,7 @@ function updateGridView() {
 }
 
 function updateChooseCardPanel() {
-    $("#chooseCardMsg").text("Pick two immune cards to keep!");
+    $("#chooseCardMsg").text("Now choose two immune cards to keep!");
     $("#chooseCardPanel").empty();
     gameState.playerDraftPool.forEach(function (item, _) {
         let cardDiv = getInteractiveDivForCard(item);
@@ -678,7 +672,10 @@ function updateChooseCardPanel() {
             updateCardPanels();
             if (checkIfFinishedDrafting()) {
                 $("#chooseCardPanel").empty();
-                $("#chooseCardMsg").text("Thanks!");
+                hideChooseCardPanel();
+
+                switchPlayState(PlayStates.PLAYER_DRAW_PHASE_DONE);
+                finishedHandlingState(500);
 
             }
         });
