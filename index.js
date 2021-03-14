@@ -557,8 +557,12 @@ handlers[PlayStates.VIRUS_MOVES_DOWN_ACTIVE] = function () {
     } else {
         if (virusHasWon()) {
             switchPlayState(PlayStates.BODY_DEFEATED);
-        } else if (!doesVirusHaveAnyAttackPoints() && !doesVirusHaveAnySpawnPoints()) {
-            switchPlayState(PlayStates.VIRUS_DEFEATED);
+        } else if (!doesVirusHaveAnyAttackPoints()) {
+            if (!doesVirusHaveAnySpawnPoints()) {
+                switchPlayState(PlayStates.VIRUS_DEFEATED);
+            } else {
+                switchPlayState(PlayStates.VIRUS_MOVES_DOWN_DONE);
+            }
         } else {
             if (coinFlip()) {
                 let virusAttackPoints = findValidVirusAttackPoints();
