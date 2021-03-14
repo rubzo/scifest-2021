@@ -1,7 +1,7 @@
 body {
     margin: 0px;
     padding: 0px;
-    background-color: #1e3561;
+    background-color: #4667a5;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
     color: white;
 }
@@ -27,6 +27,13 @@ a:visited {
     text-align: center;
     margin-top: 2em;
     margin-bottom: 2em;
+}
+
+#gameTitleBanner {
+    max-width: 800px;
+    min-width: 800px;
+    border: 2px solid;
+    border-radius: 16px;
 }
 
 #gameView {
@@ -217,10 +224,10 @@ a:visited {
 .card {
     display: inline-block;
 
-    width: 125px;
-    max-width: 125px;
-    height: 175px;
-    max-height: 175px;
+    width: 100px;
+    max-width: 100px;
+    height: 140px;
+    max-height: 140px;
 
     border: solid 1px;
     border-radius: 10px;
@@ -235,6 +242,8 @@ a:visited {
     box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
 
     position: relative;
+
+    background-size: cover;
 }
 
 .cardText {
@@ -256,7 +265,7 @@ a:visited {
     max-width: 296px;
     height: 473px;
     max-height: 473px;
-    z-index: 6;
+    z-index: 8;
 
     border-radius: 10px;
 
@@ -270,12 +279,6 @@ a:visited {
 .gone {
     display: none;
 }
-
-/*.virusIcon {
-    width: 32px;
-    height: 32px;
-    z-index: 6;
-}*/
 
 /* --- */
 /* The snackbar - position it at the bottom and in the middle of the screen */
@@ -352,7 +355,7 @@ a:visited {
     border-radius: 16px; /* Rounded borders */
     padding: 16px; /* Padding */
     position: fixed; /* Sit on top of the screen */
-    z-index: 8;
+    z-index: 6;
     top: 40%;
 
     box-shadow: 0 12px 20px 0 rgba(0, 0, 0, 0.5);

@@ -608,11 +608,18 @@ function hideChooseCardPanel() {
 
 function getInteractiveDivForCard(card) {
     let div = null;
-    if (card.art !== null) {
-        div = $(`<div class="cardContainer"><div class="card"><div class="cardText">${card.title}</div><div class="cardBlowUp hidden" style="background-image: url('${card.art}');"></div></div></div>`);
+
+    if (card.smallart !== null && card.smallart !== undefined) {
+        div = $(`<div class="cardContainer"><div class="card" style="background-image: url('${card.smallart}');"><div class="cardBlowUp hidden" style="background-image: url('${card.art}');"></div></div></div>`);
     } else {
-        div = $(`<div class="cardContainer"><div class="card"><div class="cardText">${card.title}</div></div></div>`);
+        if (card.art !== null) {
+            div = $(`<div class="cardContainer"><div class="card"><div class="cardText">${card.title}</div><div class="cardBlowUp hidden" style="background-image: url('${card.art}');"></div></div></div>`);
+        } else {
+            div = $(`<div class="cardContainer"><div class="card"><div class="cardText">${card.title}</div></div></div>`);
+        }
     }
+
+
     div.mouseenter(function () {
         div.find(".cardBlowUp").removeClass("hidden");
     });
@@ -910,6 +917,7 @@ class VirusCard {
         this.title = this.constructor.title;
         this.kind = this.constructor.kind;
         this.art = this.constructor.art;
+        this.smallart = this.constructor.smallart;
         this.oneshot = this.constructor.oneshot;
     }
 
@@ -964,6 +972,7 @@ class LiverTropism extends VirusCard {
 LiverTropism.title = "Liver Tropism";
 LiverTropism.kind = "Tropism";
 LiverTropism.art = "assets/cards/card-virus-tropism-liver.png";
+LiverTropism.smallart = "assets/cards/small/card-virus-tropism-liver.png";
 LiverTropism.oneshot = false;
 
 class LungTropism extends VirusCard {
@@ -976,6 +985,7 @@ class LungTropism extends VirusCard {
 LungTropism.title = "Lung Tropism";
 LungTropism.kind = "Tropism";
 LungTropism.art = "assets/cards/card-virus-tropism-lung.png";
+LungTropism.smallart = "assets/cards/small/card-virus-tropism-lung.png";
 LungTropism.oneshot = false;
 
 class IntestineTropism extends VirusCard {
@@ -988,6 +998,7 @@ class IntestineTropism extends VirusCard {
 IntestineTropism.title = "Intestine Tropism";
 IntestineTropism.kind = "Tropism";
 IntestineTropism.art = "assets/cards/card-virus-tropism-intestine.png";
+IntestineTropism.smallart = "assets/cards/small/card-virus-tropism-intestine.png";
 IntestineTropism.oneshot = false;
 
 class AntiviralResistance extends VirusCard {
@@ -1002,6 +1013,7 @@ class AntiviralResistance extends VirusCard {
 AntiviralResistance.title = "Antiviral Resistance";
 AntiviralResistance.kind = "Antiviral Resistance";
 AntiviralResistance.art = "assets/cards/card-virus-antiviral-resistance.png";
+AntiviralResistance.smallart = "assets/cards/small/card-virus-antiviral-resistance.png";
 AntiviralResistance.oneshot = false;
 
 class BlueCytokineNeutralisation extends VirusCard {
@@ -1012,6 +1024,7 @@ class BlueCytokineNeutralisation extends VirusCard {
 BlueCytokineNeutralisation.title = "Blue Cytokine Neutralisation";
 BlueCytokineNeutralisation.kind = "Cytokine Neutralisation";
 BlueCytokineNeutralisation.art = "assets/cards/card-virus-cytokine-neutralisation-blue.png";
+BlueCytokineNeutralisation.smallart = "assets/cards/small/card-virus-cytokine-neutralisation-blue.png";
 BlueCytokineNeutralisation.oneshot = true;
 
 class GreenCytokineNeutralisation extends VirusCard {
@@ -1022,6 +1035,7 @@ class GreenCytokineNeutralisation extends VirusCard {
 GreenCytokineNeutralisation.title = "Green Cytokine Neutralisation";
 GreenCytokineNeutralisation.kind = "Cytokine Neutralisation";
 GreenCytokineNeutralisation.art = "assets/cards/card-virus-cytokine-neutralisation-green.png";
+GreenCytokineNeutralisation.smallart = "assets/cards/small/card-virus-cytokine-neutralisation-green.png";
 GreenCytokineNeutralisation.oneshot = true;
 
 class RedCytokineNeutralisation extends VirusCard {
@@ -1032,6 +1046,7 @@ class RedCytokineNeutralisation extends VirusCard {
 RedCytokineNeutralisation.title = "Red Cytokine Neutralisation";
 RedCytokineNeutralisation.kind = "Cytokine Neutralisation";
 RedCytokineNeutralisation.art = "assets/cards/card-virus-cytokine-neutralisation-red.png";
+RedCytokineNeutralisation.smallart = "assets/cards/small/card-virus-cytokine-neutralisation-red.png";
 RedCytokineNeutralisation.oneshot = true;
 
 class AntibodiesEscapeLiver extends VirusCard {
@@ -1042,6 +1057,7 @@ class AntibodiesEscapeLiver extends VirusCard {
 AntibodiesEscapeLiver.title = "Antibodies Escape Liver";
 AntibodiesEscapeLiver.kind = "Antibodies Escape";
 AntibodiesEscapeLiver.art = "assets/cards/card-virus-antibodies-escape-liver.png";
+AntibodiesEscapeLiver.smallart = "assets/cards/small/card-virus-antibodies-escape-liver.png";
 AntibodiesEscapeLiver.oneshot = true;
 
 class AntibodiesEscapeLung extends VirusCard {
@@ -1052,6 +1068,7 @@ class AntibodiesEscapeLung extends VirusCard {
 AntibodiesEscapeLung.title = "Antibodies Escape Lung";
 AntibodiesEscapeLung.kind = "Antibodies Escape";
 AntibodiesEscapeLung.art = "assets/cards/card-virus-antibodies-escape-lung.png";
+AntibodiesEscapeLung.smallart = "assets/cards/small/card-virus-antibodies-escape-lung.png";
 AntibodiesEscapeLung.oneshot = true;
 
 class AntibodiesEscapeIntestine extends VirusCard {
@@ -1062,6 +1079,7 @@ class AntibodiesEscapeIntestine extends VirusCard {
 AntibodiesEscapeIntestine.title = "Antibodies Escape Intestine";
 AntibodiesEscapeIntestine.kind = "Antibodies Escape";
 AntibodiesEscapeIntestine.art = "assets/cards/card-virus-antibodies-escape-intestine.png";
+AntibodiesEscapeIntestine.smallart = "assets/cards/small/card-virus-antibodies-escape-intestine.png";
 AntibodiesEscapeIntestine.oneshot = true;
 
 let virusCardClassPool = [
@@ -1085,6 +1103,7 @@ class ImmuneCard {
         this.title = this.constructor.title;
         this.kind = this.constructor.kind;
         this.art = this.constructor.art;
+        this.smallart = this.constructor.smallart;
         this.needsInteraction = this.constructor.needsInteraction;
         this.oneshot = this.constructor.oneshot;
         this.causesStateChange = this.constructor.causesStateChange;
@@ -1224,6 +1243,7 @@ class Antiviral extends ImmuneCard {
 Antiviral.title = "Antiviral";
 Antiviral.kind = "Antiviral";
 Antiviral.art = "assets/cards/card-immune-antiviral.png";
+Antiviral.smallart = "assets/cards/small/card-immune-antiviral.png";
 Antiviral.needsInteraction = false;
 Antiviral.oneshot = false;
 Antiviral.causesStateChange = false;
@@ -1252,6 +1272,7 @@ class CytokinesBlue extends ImmuneCard {
 CytokinesBlue.title = "Blue Cytokines";
 CytokinesBlue.kind = "Cytokines";
 CytokinesBlue.art = "assets/cards/card-immune-cytokines-blue.png";
+CytokinesBlue.smallart = "assets/cards/small/card-immune-cytokines-blue.png";
 CytokinesBlue.needsInteraction = true;
 CytokinesBlue.oneshot = false;
 CytokinesBlue.causesStateChange = false;
@@ -1280,6 +1301,7 @@ class CytokinesRed extends ImmuneCard {
 CytokinesRed.title = "Red Cytokines";
 CytokinesRed.kind = "Cytokines";
 CytokinesRed.art = "assets/cards/card-immune-cytokines-red.png";
+CytokinesRed.smallart = "assets/cards/small/card-immune-cytokines-red.png";
 CytokinesRed.needsInteraction = true;
 CytokinesRed.oneshot = false;
 CytokinesRed.causesStateChange = false;
@@ -1308,6 +1330,7 @@ class CytokinesGreen extends ImmuneCard {
 CytokinesGreen.title = "Green Cytokines";
 CytokinesGreen.kind = "Cytokines";
 CytokinesGreen.art = "assets/cards/card-immune-cytokines-green.png";
+CytokinesGreen.smallart = "assets/cards/small/card-immune-cytokines-green.png";
 CytokinesGreen.needsInteraction = true;
 CytokinesGreen.oneshot = false;
 CytokinesGreen.causesStateChange = false;
@@ -1342,6 +1365,7 @@ class AntibodiesLiver extends ImmuneCard {
 AntibodiesLiver.title = "Liver Antibodies";
 AntibodiesLiver.kind = "Antibodies";
 AntibodiesLiver.art = "assets/cards/card-immune-antibodies-liver.png";
+AntibodiesLiver.smallart = "assets/cards/small/card-immune-antibodies-liver.png";
 AntibodiesLiver.needsInteraction = true;
 AntibodiesLiver.oneshot = false;
 AntibodiesLiver.causesStateChange = false;
@@ -1376,6 +1400,7 @@ class AntibodiesLung extends ImmuneCard {
 AntibodiesLung.title = "Lung Antibodies";
 AntibodiesLung.kind = "Antibodies";
 AntibodiesLung.art = "assets/cards/card-immune-antibodies-lung.png";
+AntibodiesLung.smallart = "assets/cards/small/card-immune-antibodies-lung.png";
 AntibodiesLung.needsInteraction = true;
 AntibodiesLung.oneshot = false;
 AntibodiesLung.causesStateChange = false;
@@ -1410,6 +1435,7 @@ class AntibodiesIntestine extends ImmuneCard {
 AntibodiesIntestine.title = "Intestine Antibodies";
 AntibodiesIntestine.kind = "Antibodies";
 AntibodiesIntestine.art = "assets/cards/card-immune-antibodies-intestine.png";
+AntibodiesIntestine.smallart = "assets/cards/small/card-immune-antibodies-intestine.png";
 AntibodiesIntestine.needsInteraction = true;
 AntibodiesIntestine.oneshot = false;
 AntibodiesIntestine.causesStateChange = false;
@@ -1437,6 +1463,7 @@ class TCellsLiver extends ImmuneCard {
 TCellsLiver.title = "Liver T Cells";
 TCellsLiver.kind = "T Cells";
 TCellsLiver.art = "assets/cards/card-immune-t-cell-liver.png";
+TCellsLiver.smallart = "assets/cards/small/card-immune-t-cell-liver.png";
 TCellsLiver.needsInteraction = true;
 TCellsLiver.oneshot = true;
 
@@ -1463,6 +1490,7 @@ class TCellsLung extends ImmuneCard {
 TCellsLung.title = "Lung T Cells";
 TCellsLung.kind = "T Cells";
 TCellsLung.art = "assets/cards/card-immune-t-cell-lung.png";
+TCellsLung.smallart = "assets/cards/small/card-immune-t-cell-lung.png";
 TCellsLung.needsInteraction = true;
 TCellsLung.oneshot = true;
 TCellsLung.causesStateChange = false;
@@ -1490,6 +1518,7 @@ class TCellsIntestine extends ImmuneCard {
 TCellsIntestine.title = "Intestine T Cells";
 TCellsIntestine.kind = "T Cells";
 TCellsIntestine.art = "assets/cards/card-immune-t-cell-intestine.png";
+TCellsIntestine.smallart = "assets/cards/small/card-immune-t-cell-intestine.png";
 TCellsIntestine.needsInteraction = true;
 TCellsIntestine.oneshot = true;
 TCellsIntestine.causesStateChange = false;
@@ -1503,6 +1532,7 @@ class NucleotideSensing extends ImmuneCard {
 NucleotideSensing.title = "DNA/RNA Sensing";
 NucleotideSensing.kind = "Sensing";
 NucleotideSensing.art = "assets/cards/card-immune-nucleotide-sensing.png";
+NucleotideSensing.smallart = "assets/cards/small/card-immune-nucleotide-sensing.png";
 NucleotideSensing.needsInteraction = false;
 NucleotideSensing.oneshot = true;
 NucleotideSensing.causesStateChange = true;
