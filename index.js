@@ -365,9 +365,9 @@ function mutateVirus() {
         gameState.virusCards.push(newCard);
         gameState.virusCardsChanged = true;
         if (newCard.oneshot) {
-            toastMessage(`The virus played ${newCard.title}!`)
+            toastMessage(`The virus mutated and played ${newCard.title}!`)
         } else {
-            toastMessage(`The virus gained ${newCard.title}!`)
+            toastMessage(`The virus mutated and gained ${newCard.title}!`)
         }
     } else {
         // Remove a card...
@@ -376,7 +376,7 @@ function mutateVirus() {
         gameState.virusCards = newVirusCards;
         gameState.virusCardsChanged = true;
         cardToRemove.removeEffects();
-        toastMessage(`The virus lost ${cardToRemove.title}!`)
+        toastMessage(`The virus mutated and lost ${cardToRemove.title}!`)
     }
     updateUI();
 }
@@ -456,7 +456,6 @@ function finishedHandlingState(delay) {
 handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_READY] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_ACTIVE);
-    toastMessage("The virus is spreading out!");
     finishedHandlingState(500);
 }
 
@@ -471,11 +470,8 @@ handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_ACTIVE] = function () {
                 let virusSpawnPoints = findValidVirusSpawnPoints();
                 if (virusSpawnPoints.length != 0) {
                     let newSpawnLoc = randomElement(virusSpawnPoints);
-                    //toastMessage("Virus has replicated!");
                     placeVirusOnGridIfClean(newSpawnLoc[0], newSpawnLoc[1]);
                 }
-            } else {
-                //toastMessage("Virus is continuing to try to replicate...");
             }
             gameState.replicationAttempts++;
             updateUI();
@@ -513,7 +509,7 @@ handlers[PlayStates.PLAYER_DRAW_PHASE_DONE] = function () {
 }
 
 handlers[PlayStates.PLAYER_PLAY_PHASE_READY] = function () {
-    toastMessage("Time to play cards to fight the virus!");
+    toastMessage("Play immune cards!");
     setupUIForPlayPhase();
     switchPlayState(PlayStates.PLAYER_PLAY_PHASE_WAITING);
     finishedHandlingState();
@@ -547,7 +543,7 @@ handlers[PlayStates.VIRUS_MUTATION_DONE] = function () {
 handlers[PlayStates.VIRUS_MOVES_DOWN_READY] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.VIRUS_MOVES_DOWN_ACTIVE);
-    toastMessage("The virus is trying to spread down!");
+    toastMessage("The virus is trying to replicate and spread!");
     finishedHandlingState(700);
 }
 
@@ -567,10 +563,7 @@ handlers[PlayStates.VIRUS_MOVES_DOWN_ACTIVE] = function () {
             if (coinFlip()) {
                 let virusAttackPoints = findValidVirusAttackPoints();
                 let newSpawnLoc = randomElement(virusAttackPoints);
-                //toastMessage("Virus has attacked!");
                 placeVirusOnGridIfClean(newSpawnLoc[0], newSpawnLoc[1]);
-            } else {
-                //toastMessage("Virus is continuing to try to attack...");
             }
             gameState.replicationAttempts++;
             updateUI();
@@ -582,7 +575,6 @@ handlers[PlayStates.VIRUS_MOVES_DOWN_ACTIVE] = function () {
 handlers[PlayStates.VIRUS_MOVES_DOWN_DONE] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_READY);
-    toastMessage("The virus has finished spreading down!");
     finishedHandlingState();
 }
 
@@ -630,13 +622,13 @@ function getInteractiveDivForCard(card) {
 }
 
 function showLossScreen() {
-    $("#chooseCardMsg").text("The virus has taken over - you lose!");
+    $("#chooseCardMsg").text("The virus has spread through the entire tissue - you've lost!");
     $("#chooseCardPanel").empty();
     $("#chooseCardDisplay").addClass("show");
 }
 
 function showWinScreen() {
-    $("#chooseCardMsg").text("You have contained the virus - you win!");
+    $("#chooseCardMsg").text("You've contained the virus - you've won!");
     $("#chooseCardPanel").empty();
     $("#chooseCardDisplay").addClass("show");
 }
@@ -673,7 +665,7 @@ function updateGridView() {
 }
 
 function updateChooseCardPanel() {
-    $("#chooseCardMsg").text("Now choose two immune cards to keep!");
+    $("#chooseCardMsg").text("Pick two immune cards");
     $("#chooseCardPanel").empty();
     gameState.playerDraftPool.forEach(function (item, _) {
         let cardDiv = getInteractiveDivForCard(item);
@@ -848,7 +840,7 @@ function onCellClick(row, column) {
             switchPlayState(PlayStates.PLAYER_PLAY_PHASE_WAITING);
             finishedHandlingState(5);
         } else {
-            toastMessage("Cannot place here!", 1000);
+            toastMessage("Cannot play this here!", 1000);
         }
     }
 }
