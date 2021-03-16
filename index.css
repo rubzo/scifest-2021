@@ -23,6 +23,14 @@ a:visited {
     color: white;
 }
 
+#introText {
+    margin-top: 5%;
+    margin-left: 10%;
+    margin-right: 10%;
+    margin-bottom: 10%;
+    font-size: 1.5em;
+}
+
 #gameTitle {
     text-align: center;
     margin-top: 2em;
@@ -176,6 +184,10 @@ a:visited {
 
 .big {
     font-size: 2em;
+}
+
+.center {
+    text-align: center;
 }
 
 .buttonPanel {

@@ -62,11 +62,10 @@ const Tissue = {
 }
 
 const PlayStates = {
-    PICKING_INITIAL_VIRUS_TRAITS: 1,
-    // -> PICKING_INITIAL_IMMUNE_TRAITS
-    PICKING_INITIAL_IMMUNE_TRAITS: 2,
-    // -> ASSIGNING_INITIAL_IMMUNE_TRAITS
-    ASSIGNING_INITIAL_IMMUNE_TRAITS: 3,
+    WAITING_TO_START: 1,
+    // -> STARTING
+
+    STARTING: 2,
     // -> VIRUS_MOVES_SIDEWAYS_READY
 
     VIRUS_MOVES_SIDEWAYS_READY: 41,
@@ -414,23 +413,15 @@ function setupGame() {
         inactiveImmuneCards: [],
         activeImmuneCardsChanged: false,
         inactiveImmuneCardsChanged: false,
-        state: PlayStates.PICKING_INITIAL_VIRUS_TRAITS,
+        state: PlayStates.WAITING_TO_START,
         playerDraftPool: [],
         numCardsSelectedInDraftPool: 0,
         interactionCard: null,
     }
 
-    // TODO: this will be factored into the whole
-    // 'timeout(continueBasedOnCurrentState)' thing
     gameState.virusCards = generateInitialVirusCards();
     gameState.virusCardsChanged = true;
     placeVirusBasedOnCards();
-
-    // These will probably actually go
-    switchPlayState(PlayStates.PICKING_INITIAL_IMMUNE_TRAITS);
-    switchPlayState(PlayStates.ASSIGNING_INITIAL_IMMUNE_TRAITS);
-
-    switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_READY);
 
     continueBasedOnCurrentState();
 }
@@ -880,10 +871,6 @@ function removeGridListeners() {
     }
 }
 
-function hookupHandlers() {
-
-}
-
 function toastMessage(msg, dur) {
     if (dur === undefined) {
         dur = 2900;
@@ -897,17 +884,28 @@ function toastMessage(msg, dur) {
     }, dur);
 }
 
+function hookupDifficultyButtons() {
+    $("#startNormalButton").click(function () {
+        setupGame();
+        $("#introText").remove();
+        $("#gameView").removeClass("hidden");
+        updateUI();
+        switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_READY); // TODO: Really -> STARTING, where we set difficulty?
+        finishedHandlingState(500);
+    });
+
+    $("#startHardButton").click(function () {
+        toastMessage("Coming soon!");
+    });
+}
+
 // OnLoad
 function onLoad() {
     generateGrid($("#liverCells"), 0);
     generateGrid($("#lungCells"), 1);
     generateGrid($("#intestineCells"), 2);
 
-    setupGame();
-
-    hookupHandlers();
-
-    updateUI();
+    hookupDifficultyButtons();
 }
 
 $(document).ready(onLoad);
