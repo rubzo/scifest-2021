@@ -610,16 +610,21 @@ function hideChooseCardPanel() {
     $("#chooseCardDisplay").removeClass("show");
 }
 
-function getInteractiveDivForCard(card) {
+function getInteractiveDivForCard(card, isActiveCard) {
     let div = null;
 
+    let cssClasses = "card";
+    if (isActiveCard) {
+        cssClasses += " activeCard";
+    }
+
     if (card.smallart !== null && card.smallart !== undefined) {
-        div = $(`<div class="cardContainer"><div class="card" style="background-image: url('${card.smallart}');"><div class="cardBlowUp hidden" style="background-image: url('${card.art}');"></div></div></div>`);
+        div = $(`<div class="cardContainer"><div class="${cssClasses}" style="background-image: url('${card.smallart}'); "><div class="cardBlowUp hidden" style="background-image: url('${card.art}'); "></div></div></div>`);
     } else {
         if (card.art !== null) {
-            div = $(`<div class="cardContainer"><div class="card"><div class="cardText">${card.title}</div><div class="cardBlowUp hidden" style="background-image: url('${card.art}');"></div></div></div>`);
+            div = $(`<div class="cardContainer"><div class="${cssClasses}"><div class="cardText">${card.title}</div><div class="cardBlowUp hidden" style="background-image: url('${card.art}');"></div></div></div>`);
         } else {
-            div = $(`<div class="cardContainer"><div class="card"><div class="cardText">${card.title}</div></div></div>`);
+            div = $(`<div class="cardContainer"><div class="${cssClasses}"><div class="cardText">${card.title}</div></div></div>`);
         }
     }
 
@@ -713,10 +718,8 @@ function updateActiveCardPanel() {
         $("#activeImmuneCardPanel").empty();
         if (gameState.activeImmuneCards.length > 0) {
             gameState.activeImmuneCards.forEach(function (item, _) {
-                $("#activeImmuneCardPanel").append(getInteractiveDivForCard(item));
+                $("#activeImmuneCardPanel").append(getInteractiveDivForCard(item, true));
             });
-        } else {
-            $("#activeImmuneCardPanel").append($('<div class="cardSpacer"></div>'));
         }
         gameState.activeImmuneCardsChanged = false;
     }
@@ -729,8 +732,6 @@ function updateInactiveCardPanel() {
             gameState.inactiveImmuneCards.forEach(function (item, _) {
                 $("#inactiveImmuneCardPanel").append(getInteractiveDivForCard(item));
             });
-        } else {
-            $("#inactiveImmuneCardPanel").append($('<div class="cardSpacer"></div>'));
         }
         gameState.inactiveImmuneCardsChanged = false;
     }

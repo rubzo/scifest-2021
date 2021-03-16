@@ -1,7 +1,7 @@
 body {
     margin: 0px;
     padding: 0px;
-    background-color: #4667a5;
+    background-color: #1e3561;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
     color: white;
 }
@@ -32,8 +32,6 @@ a:visited {
 #gameTitleBanner {
     max-width: 800px;
     min-width: 800px;
-    border: 2px solid;
-    border-radius: 16px;
 }
 
 #gameView {
@@ -209,11 +207,6 @@ a:visited {
     display: flex;
 }
 
-.cardSpacer {
-    min-height: 200px;
-    max-height: 200px;
-}
-
 .cardContainer {
     flex-grow: 1;
     display: inline-flex;
@@ -229,7 +222,7 @@ a:visited {
     height: 140px;
     max-height: 140px;
 
-    border: solid 1px;
+    border: solid 1px white;
     border-radius: 10px;
 
     background: rgb(212,180,128);
@@ -244,6 +237,13 @@ a:visited {
     position: relative;
 
     background-size: cover;
+}
+
+.activeCard {
+    width: 80px;
+    max-width: 80px;
+    height: 112px;
+    max-height: 112px;
 }
 
 .cardText {
@@ -268,6 +268,7 @@ a:visited {
     z-index: 8;
 
     border-radius: 10px;
+    border: solid 1px white;
 
     box-shadow: 0 20px 32px 0 rgba(0, 0, 0, 0.4);
 }
@@ -375,4 +376,9 @@ a:visited {
 @keyframes cardDisplayFadein {
   from {top: 10%; opacity: 0;}
   to {top: 40%; opacity: 1;}
+}
+
+.cardPanelTitle {
+    font-size: 1em;
+    font-variant: small-caps;
 }
