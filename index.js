@@ -198,12 +198,24 @@ function doesVirusHaveAnyAttackPoints() {
 
 function findValidVirusAttackPoints() {
     let attackPoints = [];
+    let infectingLiver = gameState.virusCards.filter(c => c.title == "Liver Tropism").length > 0;
+    let infectingLung = gameState.virusCards.filter(c => c.title == "Lung Tropism").length > 0;
+    let infectingIntestine = gameState.virusCards.filter(c => c.title == "Intestine Tropism").length > 0;
     for (let row = TISSUE_HEIGHT - 2; row >= 0; row--) {
         if (areAnyCellsInRowInfected(row)) {
             for (let column = 0; column < ALL_TISSUE_WIDTH; column++) {
-                // TODO: improve this logic
+                if (column >= 0 && column < TISSUE_WIDTH && !infectingLiver) {
+                    continue;
+                }
+                if (column >= (TISSUE_WIDTH) && column < (TISSUE_WIDTH * 2) && !infectingLung) {
+                    continue;
+                }
+                if (column >= (TISSUE_WIDTH * 2) && column < (TISSUE_WIDTH * 3) && !infectingIntestine) {
+                    continue;
+                }
                 if (gameState.grid[row][column].isInfected()
                     && gameState.grid[row + 1][column].isClean()) {
+
                     attackPoints.push([row + 1, column]);
                 }
             }
