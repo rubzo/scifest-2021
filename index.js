@@ -1015,11 +1015,18 @@ IntestineTropism.oneshot = false;
 
 class AntiviralResistance extends VirusCard {
     applyEffects() {
-        gameState.replicationSpeed++;
+        if (gameState.replicationSpeed < 16) {
+            gameState.replicationSpeed++;
+            this.appliedEffect = true;
+        } else {
+            this.appliedEffect = false;
+        }
     }
 
     removeEffects() {
-        gameState.replicationSpeed--;
+        if (this.appliedEffect) {
+            gameState.replicationSpeed--;
+        }
     }
 }
 AntiviralResistance.title = "Antiviral Resistance";
@@ -1245,11 +1252,18 @@ class ImmuneCard {
 
 class Antiviral extends ImmuneCard {
     applyEffects() {
-        gameState.replicationSpeed--;
+        if (gameState.replicationSpeed > 1) {
+            gameState.replicationSpeed--;
+            this.appliedEffect = true;
+        } else {
+            this.appliedEffect = false;
+        }
     }
 
     removeEffects() {
-        gameState.replicationSpeed++;
+        if (this.appliedEffect) {
+            gameState.replicationSpeed++;
+        }
     }
 }
 Antiviral.title = "Antiviral";
