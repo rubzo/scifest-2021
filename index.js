@@ -788,6 +788,7 @@ function leaveInteractiveMode() {
 
     // Disable the cancel button
     $("#cancelButton").addClass("gone");
+    $("#cancelSpacer").addClass("gone");
     $("#cancelButton").off("click");
 
     switchPlayState(PlayStates.PLAYER_PLAY_PHASE_WAITING);
@@ -805,6 +806,7 @@ function enterInteractiveMode(gameCard, uiCard) {
 
     // Enable the cancel button
     $("#cancelButton").removeClass("gone");
+    $("#cancelSpacer").removeClass("gone");
     $("#cancelButton").click(function () {
         leaveInteractiveMode();
         makeCardInactive(gameCard);
