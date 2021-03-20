@@ -417,6 +417,7 @@ function setupGame(hardMode) {
         playerDraftPool: [],
         numCardsSelectedInDraftPool: 0,
         interactionCard: null,
+        oldReplicationSpeed: null,
     }
 
     if (hardMode) {
@@ -765,7 +766,13 @@ function updateCardPanels() {
 }
 
 function updateOtherData() {
-    $("#virusReplicationSpeed").text(gameState.replicationSpeed);
+    let newString = ("🧬".repeat(gameState.replicationSpeed)) + `(${gameState.replicationSpeed}`;
+    if (gameState.oldReplicationSpeed !== null) {
+        newString += `, was ${gameState.oldReplicationSpeed})`;
+    } else {
+        newString += ")";
+    }
+    $("#virusReplicationSpeed").text(newString);
 }
 
 function updateUI() {
@@ -929,6 +936,14 @@ function toastMessage(msg, dur) {
     }, dur);
 }
 
+function alertReplicationSpeedChanged() {
+    $("#virusReplicationSpeed").addClass("highlight");
+    setTimeout(function () {
+        $("#virusReplicationSpeed").removeClass("highlight");
+        gameState.oldReplicationSpeed = null;
+    }, 10000);
+}
+
 function hookupDifficultyButtons() {
     $("#startNormalButton").click(function () {
         setupGame(false /* normal */);
@@ -1057,7 +1072,9 @@ IntestineTropism.oneshot = false;
 class AntiviralResistance extends VirusCard {
     applyEffects() {
         if (gameState.replicationSpeed < 16) {
+            gameState.oldReplicationSpeed = gameState.replicationSpeed;
             gameState.replicationSpeed++;
+            alertReplicationSpeedChanged();
             this.appliedEffect = true;
         } else {
             this.appliedEffect = false;
@@ -1066,7 +1083,9 @@ class AntiviralResistance extends VirusCard {
 
     removeEffects() {
         if (this.appliedEffect) {
+            gameState.oldReplicationSpeed = gameState.replicationSpeed;
             gameState.replicationSpeed--;
+            alertReplicationSpeedChanged();
         }
     }
 }
@@ -1295,7 +1314,9 @@ class ImmuneCard {
 class Antiviral extends ImmuneCard {
     applyEffects() {
         if (gameState.replicationSpeed > 1) {
+            gameState.oldReplicationSpeed = gameState.replicationSpeed;
             gameState.replicationSpeed--;
+            alertReplicationSpeedChanged();
             this.appliedEffect = true;
         } else {
             this.appliedEffect = false;
@@ -1304,7 +1325,9 @@ class Antiviral extends ImmuneCard {
 
     removeEffects() {
         if (this.appliedEffect) {
+            gameState.oldReplicationSpeed = gameState.replicationSpeed;
             gameState.replicationSpeed++;
+            alertReplicationSpeedChanged();
         }
     }
 }
