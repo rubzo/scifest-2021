@@ -513,8 +513,8 @@ handlers[PlayStates.PLAYER_DRAW_PHASE_DONE] = function () {
 
 handlers[PlayStates.PLAYER_PLAY_PHASE_READY] = function () {
     toastMessage("Play immune cards!");
-    setupUIForPlayPhase();
     switchPlayState(PlayStates.PLAYER_PLAY_PHASE_WAITING);
+    setupUIForPlayPhase();
     finishedHandlingState();
 }
 
@@ -725,13 +725,26 @@ function updateActiveCardPanel() {
     }
 }
 
+function createCardClickHandler(gameCard, uiCard) {
+    return function () {
+        if (gameState.state === PlayStates.PLAYER_PLAY_PHASE_WAITING) {
+            playCardUISide(gameCard, uiCard);
+            $(uiCard).off("click");
+            // Do we ever need to update anything else? GridView?
+        }
+    }
+}
+
 function updateInactiveCardPanel() {
     if (gameState.inactiveImmuneCardsChanged) {
         $("#inactiveImmuneCardPanel").empty();
-        if (gameState.inactiveImmuneCards.length > 0) {
-            gameState.inactiveImmuneCards.forEach(function (item, _) {
-                $("#inactiveImmuneCardPanel").append(getInteractiveDivForCard(item));
-            });
+        for (let index = 0; index < gameState.inactiveImmuneCards.length; index++) {
+            let gameCard = gameState.inactiveImmuneCards[index];
+            let uiCard = getInteractiveDivForCard(gameCard);
+            $("#inactiveImmuneCardPanel").append(uiCard);
+            if (gameState.state === PlayStates.PLAYER_PLAY_PHASE_WAITING) {
+                $(uiCard).click(createCardClickHandler(gameCard, uiCard));
+            }
         }
         gameState.inactiveImmuneCardsChanged = false;
     }
@@ -760,41 +773,59 @@ function makeCardActive(card) {
     gameState.activeImmuneCardsChanged = true;
 }
 
+function makeCardInactive(card) {
+    gameState.activeImmuneCards = gameState.activeImmuneCards.filter(c => c !== card);
+    gameState.inactiveImmuneCards.push(card);
+    gameState.inactiveImmuneCardsChanged = true;
+    gameState.activeImmuneCardsChanged = true;
+}
+
+function leaveInteractiveMode() {
+    gameState.interactionCard = null;
+    $("#boardText").addClass("gone");
+    removeGridListeners();
+    updateGridView();
+
+    // Disable the cancel button
+    $("#cancelButton").addClass("gone");
+    $("#cancelButton").off("click");
+
+    switchPlayState(PlayStates.PLAYER_PLAY_PHASE_WAITING);
+}
+
+function enterInteractiveMode(gameCard, uiCard) {
+    $("#boardText").text("Click on a cell to play the card!");
+    $("#boardText").removeClass("gone");
+
+    gameState.interactionCard = gameCard;
+    addGridListeners();
+    makeCardActive(gameCard);
+    updateActiveCardPanel();
+    updateInactiveCardPanel();
+
+    // Enable the cancel button
+    $("#cancelButton").removeClass("gone");
+    $("#cancelButton").click(function () {
+        leaveInteractiveMode();
+        makeCardInactive(gameCard);
+        updateActiveCardPanel();
+        updateInactiveCardPanel();
+    });
+
+    switchPlayState(PlayStates.PLAYER_PLAY_PHASE_INTERACTING);
+}
+
 function playCardUISide(gameCard, uiCard) {
     if (gameCard.causesStateChange) {
-        gameCard.applyEffects();
-        makeCardActive(gameCard);
-        $(uiCard).remove();
-        updateActiveCardPanel();
-        updateOtherData();
-        finishedHandlingState(5);
+        console.log("THIS SHOULD NOT BE HAPPENING - gameCard.causesStateChange!");
     } else if (gameCard.needsInteraction) {
-        $("#boardText").text("Click on a cell to play the card!");
-        $("#boardText").removeClass("gone");
-
-        gameState.interactionCard = gameCard;
-        addGridListeners();
-        makeCardActive(gameCard);
-        $(uiCard).remove();
-        updateActiveCardPanel();
-        switchPlayState(PlayStates.PLAYER_PLAY_PHASE_INTERACTING);
-        finishedHandlingState(5);
+        enterInteractiveMode(gameCard, uiCard);
     } else {
         gameCard.applyEffects();
         makeCardActive(gameCard);
-        $(uiCard).remove();
         updateActiveCardPanel();
+        updateInactiveCardPanel();
         updateOtherData();
-    }
-}
-
-function createCardClickHandler(gameCard, uiCard) {
-    return function () {
-        if (gameState.state === PlayStates.PLAYER_PLAY_PHASE_WAITING) {
-            playCardUISide(gameCard, uiCard);
-            $(uiCard).off("click");
-            // Do we ever need to update anything else? GridView?
-        }
     }
 }
 
@@ -802,27 +833,23 @@ function setupUIForPlayPhase() {
     gameState.activeImmuneCards = gameState.activeImmuneCards.filter(c => !c.oneshot);
     gameState.activeImmuneCardsChanged = true;
     updateActiveCardPanel();
-
-    let uiCards = $("#inactiveImmuneCardPanel").find(".cardContainer");
-    let gameCards = gameState.inactiveImmuneCards;
-    for (let index = 0; index < uiCards.length; index++) {
-        $(uiCards[index]).click(createCardClickHandler(gameCards[index], uiCards[index]));
-    }
+    // Force a refresh of inactive cards to get handlers attached
+    gameState.inactiveImmuneCardsChanged = true;
+    updateInactiveCardPanel();
 
     $("#endTurnButton").click(function () {
         if (gameState.state === PlayStates.PLAYER_PLAY_PHASE_WAITING) {
-            let uiCards = $("#inactiveImmuneCardPanel").find(".cardContainer");
-            for (let index = 0; index < uiCards.length; index++) {
-                $(uiCards[index]).off("click");
-            }
-            $("#endTurnButton").addClass("gone");
-            $("#endTurnButton").off("click");
-
             switchPlayState(PlayStates.PLAYER_PLAY_PHASE_DONE);
+            // Force a refresh of inactive cards to get handlers removed
+            gameState.inactiveImmuneCardsChanged = true;
+            updateInactiveCardPanel();
+
+            $("#controlButtons").addClass("gone");
+            $("#endTurnButton").off("click");
             finishedHandlingState(500);
         }
     });
-    $("#endTurnButton").removeClass("gone");
+    $("#controlButtons").removeClass("gone");
 }
 
 function onCellMouseenter(row, column) {
@@ -850,12 +877,7 @@ function onCellClick(row, column) {
         // if legal
         if (gameState.interactionCard.canPlaceHere(row, column)) {
             gameState.interactionCard.applyEffectsToLoc(row, column);
-            gameState.interactionCard = null;
-            $("#boardText").addClass("gone");
-            removeGridListeners();
-            updateGridView();
-            switchPlayState(PlayStates.PLAYER_PLAY_PHASE_WAITING);
-            finishedHandlingState(5);
+            leaveInteractiveMode();
         } else {
             toastMessage("Cannot play this here!", 1000);
         }
