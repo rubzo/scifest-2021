@@ -43,78 +43,81 @@ a:visited {
 }
 
 #gameView {
+    width: 1200px;
+    height: 600px;
+    cursor: default;
     display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#mainGrid {
-    /* Needs tweaking to put grid onto game board */
-    width: 1205px;
-    height: 696px;
-    background-image: url("assets/game-board.png");
-    background-size: cover;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: black;
-}
-
-.tissue {
-    height: 100%;
-}
-
-#liverTissue {
-    /* Needs tweaking to put grid onto game board */
-    margin-left: 41px;
-    margin-right: 32px;
-}
-
-#lungTissue {
-    /* Needs tweaking to put grid onto game board */
-    margin-left: -19px;
-    margin-right: -19px;
-}
-
-#intestineTissue {
-    /* Needs tweaking to put grid onto game board */
-    margin-left: 32px;
-    margin-right: 54px;
-}
-
-.tissueTitle {
-    /* Apparently just how you center align (in both dims) things. */
-    width: 100%;
-    /* Needs tweaking to put grid onto game board */
-    height: 130px;
+    flex-direction: row;
+    margin: 0 auto;
 }
 
 .tissueCellGrid {
-    width: 100%;
-    table-layout: fixed;
-    border-collapse: collapse;
-    cursor: default;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-
-    /* Needs tweaking to put grid onto game board */
-    height: 572px;
+    height: 100%;
+    flex-grow: 4;
+    display: flex;
+    flex-direction: column;
 }
 
-/* technically it's a single tissue cell itself! */
-.tissueCellColumn {
-    border: solid 1px transparent;
+#liverCells {
+    background-image: url("assets/liver_text.png"), url("assets/liver.png");
+    background-repeat: no-repeat, no-repeat;
+    background-size: 40%, 60%;
+    background-position: right top, left top;
+    padding-top: 80px;
+    padding-left: 50px;
+}
 
-    text-align: center;
+#lungCells {
+    background-image: url("assets/lung_text.png"), url("assets/lung.png");
+    background-repeat: no-repeat, no-repeat;
+    background-size: 40%, 60%;
+    background-position: top;
+    padding-top: 80px;
+}
+
+#intestineCells {
+    background-image: url("assets/intestine_text.png"), url("assets/intestine.png");
+    background-repeat: no-repeat, no-repeat;
+    background-size: 66%, 60%;
+    background-position: left top, right top;
+    padding-top: 80px;
+    padding-right: 50px;
+}
+
+.tissueCellSpacer {
+    height: 100%;
+    flex-grow: 1;
+}
+
+.tissueCellRow {
+    display: flex;
+    flex-grow: 1;
+}
+
+.tissueCellColumn {
+    flex-grow: 1;
+    margin: 2px;
+    border-radius: 6px;
+    background-color: white;
+}
+
+.tissueCellColumnLiver {
+    border: solid 2px #0b8e36;
+}
+
+.tissueCellColumnLung {
+    border: solid 2px #e6007e;
+}
+
+.tissueCellColumnIntestine {
+    border: solid 2px #c99e67;
 }
 
 .virus {
     background-image: url("assets/virus.png");
-    background-size: 60%;
+    background-size: 80%;
     background-repeat: no-repeat;
-    background-position: 15px 10px;
+    background-position: 6px 5px;
 }
 
 .cytokine-red {

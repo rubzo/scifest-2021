@@ -643,13 +643,13 @@ function showWinScreen() {
 
 function generateGrid(cellsGridDiv, tissueIndex) {
     for (let row = 0; row < TISSUE_HEIGHT; row++) {
-        let currentRow = $('<tr class="tissueCellRow"></tr>');
+        let currentRow = $('<div class="tissueCellRow"></div>');
         cellsGridDiv.append(currentRow);
         if (tissueIndex === 0) {
             gridDivs.push([]);
         }
         for (let column = 0; column < TISSUE_WIDTH; column++) {
-            let currentCell = $('<td class="tissueCellColumn"></td>');
+            let currentCell = $('<div class="tissueCellColumn"></div>');
             currentRow.append(currentCell);
             gridDivs[row].push(currentCell);
         }
@@ -661,7 +661,16 @@ function updateGridView() {
         for (let column = 0; column < ALL_TISSUE_WIDTH; column++) {
             let div = gridDivs[row][column];
             div.removeClass();
+            let tissueName = "";
+            if (Math.floor(column / TISSUE_WIDTH) == 0) {
+                tissueName = "Liver";
+            } else if (Math.floor(column / TISSUE_WIDTH) == 1) {
+                tissueName = "Lung";
+            } else {
+                tissueName = "Intestine";
+            }
             div.addClass("tissueCellColumn");
+            div.addClass(`tissueCellColumn${tissueName}`);
             if (gameState.grid[row][column].isInfected()) {
                 gridDivs[row][column].addClass("virus");
             } else if (gameState.grid[row][column].isProtected()) {
@@ -887,8 +896,8 @@ function toastMessage(msg, dur) {
 function hookupDifficultyButtons() {
     $("#startNormalButton").click(function () {
         setupGame();
-        $("#introText").remove();
-        $("#gameView").removeClass("hidden");
+        $("#introText").addClass("gone")
+        $("#wholeGame").removeClass("gone");
         updateUI();
         switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_READY); // TODO: Really -> STARTING, where we set difficulty?
         finishedHandlingState(500);
@@ -901,9 +910,9 @@ function hookupDifficultyButtons() {
 
 // OnLoad
 function onLoad() {
-    generateGrid($("#liverCells"), 0);
-    generateGrid($("#lungCells"), 1);
-    generateGrid($("#intestineCells"), 2);
+    generateGrid($("#liverCells"), 0, "Liver");
+    generateGrid($("#lungCells"), 1, "Lung");
+    generateGrid($("#intestineCells"), 2, "Intestine");
 
     hookupDifficultyButtons();
 }
