@@ -769,7 +769,7 @@ function playCardUISide(gameCard, uiCard) {
         updateOtherData();
         finishedHandlingState(5);
     } else if (gameCard.needsInteraction) {
-        $("#boardText").text("Where should this card be played?");
+        $("#boardText").text("Click on a cell to play the card!");
         $("#boardText").removeClass("gone");
 
         gameState.interactionCard = gameCard;
@@ -790,9 +790,11 @@ function playCardUISide(gameCard, uiCard) {
 
 function createCardClickHandler(gameCard, uiCard) {
     return function () {
-        playCardUISide(gameCard, uiCard);
-        $(uiCard).off("click");
-        // Do we ever need to update anything else? GridView?
+        if (gameState.state === PlayStates.PLAYER_PLAY_PHASE_WAITING) {
+            playCardUISide(gameCard, uiCard);
+            $(uiCard).off("click");
+            // Do we ever need to update anything else? GridView?
+        }
     }
 }
 
@@ -808,15 +810,17 @@ function setupUIForPlayPhase() {
     }
 
     $("#endTurnButton").click(function () {
-        let uiCards = $("#inactiveImmuneCardPanel").find(".cardContainer");
-        for (let index = 0; index < uiCards.length; index++) {
-            $(uiCards[index]).off("click");
-        }
-        $("#endTurnButton").addClass("gone");
-        $("#endTurnButton").off("click");
+        if (gameState.state === PlayStates.PLAYER_PLAY_PHASE_WAITING) {
+            let uiCards = $("#inactiveImmuneCardPanel").find(".cardContainer");
+            for (let index = 0; index < uiCards.length; index++) {
+                $(uiCards[index]).off("click");
+            }
+            $("#endTurnButton").addClass("gone");
+            $("#endTurnButton").off("click");
 
-        switchPlayState(PlayStates.PLAYER_PLAY_PHASE_DONE);
-        finishedHandlingState(500);
+            switchPlayState(PlayStates.PLAYER_PLAY_PHASE_DONE);
+            finishedHandlingState(500);
+        }
     });
     $("#endTurnButton").removeClass("gone");
 }
