@@ -1166,6 +1166,7 @@ class ImmuneCard {
         this.smallart = this.constructor.smallart;
         this.needsInteraction = this.constructor.needsInteraction;
         this.oneshot = this.constructor.oneshot;
+        // NB: this is not implemented as not yet needed.
         this.causesStateChange = this.constructor.causesStateChange;
     }
 
@@ -1592,8 +1593,22 @@ TCellsIntestine.causesStateChange = false;
 
 class NucleotideSensing extends ImmuneCard {
     applyEffects() {
-        // We should go back to the 'draw phase' basically.
-        switchPlayState(PlayStates.PLAYER_DRAW_PHASE_READY);
+        // Get random cytokine card
+        let cytokinePool = immuneCardClassPool.filter(cl => cl.kind === "Cytokines");
+        let randomCytokineClass = randomElement(cytokinePool);
+        let randomCytokineCard = new randomCytokineClass();
+        gameState.inactiveImmuneCards.push(randomCytokineCard);
+
+        // Get an extra card if we're not on hard mode!
+        if (!gameState.hardMode) {
+            let otherPool = immuneCardClassPool.filter(cl => cl.name !== "DNA/RNA Sensing");
+            let randomOtherClass = randomElement(otherPool);
+            let randomOtherCard = new randomOtherClass();
+            gameState.inactiveImmuneCards.push(randomOtherCard);
+        }
+
+        gameState.inactiveImmuneCardsChanged = true;
+        updateInactiveCardPanel();
     }
 }
 NucleotideSensing.title = "DNA/RNA Sensing";
@@ -1602,7 +1617,7 @@ NucleotideSensing.art = "assets/cards/card-immune-nucleotide-sensing.png";
 NucleotideSensing.smallart = "assets/cards/small/card-immune-nucleotide-sensing.png";
 NucleotideSensing.needsInteraction = false;
 NucleotideSensing.oneshot = true;
-NucleotideSensing.causesStateChange = true;
+NucleotideSensing.causesStateChange = false;
 
 let immuneCardClassPool = [
     Antiviral,
