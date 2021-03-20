@@ -124,49 +124,49 @@ a:visited {
     background-image: url("assets/cytokine-red.png");
     background-size: 60%;
     background-repeat: no-repeat;
-    background-position: 15px 10px;
+    background-position: 12px 8px;
 }
 
 .cytokine-blue {
     background-image: url("assets/cytokine-blue.png");
     background-size: 60%;
     background-repeat: no-repeat;
-    background-position: 15px 10px;
+    background-position: 12px 8px;
 }
 
 .cytokine-green {
     background-image: url("assets/cytokine-green.png");
     background-size: 60%;
     background-repeat: no-repeat;
-    background-position: 15px 10px;
+    background-position: 8px 12px;
 }
 
 .antibodies-liver {
     background-image: url("assets/antibodies-liver.png");
     background-size: 60%;
     background-repeat: no-repeat;
-    background-position: 15px 10px;
+    background-position: 13px 5px;
 }
 
 .antibodies-lung {
     background-image: url("assets/antibodies-lung.png");
-    background-size: 60%;
+    background-size: 50%;
     background-repeat: no-repeat;
-    background-position: 15px 10px;
+    background-position: 15px 6px;
 }
 
 .antibodies-intestine {
     background-image: url("assets/antibodies-intestine.png");
     background-size: 60%;
     background-repeat: no-repeat;
-    background-position: 15px 10px;
+    background-position: 9px 5px;
 }
 
 .virus-removal {
     background-image: url("assets/virus-removal.png");
-    background-size: 60%;
+    background-size: 80%;
     background-repeat: no-repeat;
-    background-position: 15px 10px;
+    background-position: 5px 5px;
 }
 
 /*
