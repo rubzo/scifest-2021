@@ -63,9 +63,6 @@ const Tissue = {
 
 const PlayStates = {
     WAITING_TO_START: 1,
-    // -> STARTING
-
-    STARTING: 2,
     // -> VIRUS_MOVES_SIDEWAYS_READY
 
     VIRUS_MOVES_SIDEWAYS_READY: 41,
@@ -269,9 +266,13 @@ function findValidVirusSpawnPoints() {
 function generateInitialVirusCards() {
     let cards = [];
 
-    // Currently, just give 2 Tropisms
+    let numTropismsToGive = 2;
+    if (gameState.hardMode) {
+        numTropismsToGive = 3
+    }
+
     let tropismCardClassPool = shuffle(virusCardClassPool.filter(cl => cl.kind === "Tropism"));
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < numTropismsToGive; i++) {
         let newCardClass = tropismCardClassPool[i];
         let newCard = new newCardClass();
         cards.push(newCard);
@@ -403,12 +404,11 @@ function switchPlayState(newState) {
     gameState.state = newState;
 }
 
-function setupGame() {
+function setupGame(hardMode) {
     gameState = {
         grid: generateGameStateGrid(),
         virusCards: [],
         virusCardsChanged: false,
-        replicationSpeed: 8,
         activeImmuneCards: [],
         inactiveImmuneCards: [],
         activeImmuneCardsChanged: false,
@@ -417,6 +417,14 @@ function setupGame() {
         playerDraftPool: [],
         numCardsSelectedInDraftPool: 0,
         interactionCard: null,
+    }
+
+    if (hardMode) {
+        gameState.replicationSpeed = 10;
+        gameState.hardMode = true;
+    } else {
+        gameState.replicationSpeed = 8;
+        gameState.hardMode = false;
     }
 
     gameState.virusCards = generateInitialVirusCards();
@@ -923,16 +931,21 @@ function toastMessage(msg, dur) {
 
 function hookupDifficultyButtons() {
     $("#startNormalButton").click(function () {
-        setupGame();
+        setupGame(false /* normal */);
         $("#introText").addClass("gone")
         $("#wholeGame").removeClass("gone");
         updateUI();
-        switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_READY); // TODO: Really -> STARTING, where we set difficulty?
+        switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_READY);
         finishedHandlingState(500);
     });
 
     $("#startHardButton").click(function () {
-        toastMessage("Coming soon!");
+        setupGame(true /* hard */);
+        $("#introText").addClass("gone")
+        $("#wholeGame").removeClass("gone");
+        updateUI();
+        switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_READY);
+        finishedHandlingState(500);
     });
 }
 
