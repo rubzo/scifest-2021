@@ -314,8 +314,8 @@ function getSuitableNewVirusCardClass() {
                     case "Blue Cytokines":
                         newCardClass = BlueCytokineNeutralisation;
                         break;
-                    case "Green Cytokines":
-                        newCardClass = GreenCytokineNeutralisation;
+                    case "Orange Cytokines":
+                        newCardClass = OrangeCytokineNeutralisation;
                         break;
                 }
                 done = true;
@@ -1046,16 +1046,16 @@ BlueCytokineNeutralisation.art = "assets/cards/card-virus-cytokine-neutralisatio
 BlueCytokineNeutralisation.smallart = "assets/cards/small/card-virus-cytokine-neutralisation-blue.png";
 BlueCytokineNeutralisation.oneshot = true;
 
-class GreenCytokineNeutralisation extends VirusCard {
+class OrangeCytokineNeutralisation extends VirusCard {
     applyEffects() {
-        this.searchAndRemoveRandomImmuneCardWithTitle("Green Cytokines");
+        this.searchAndRemoveRandomImmuneCardWithTitle("Orange Cytokines");
     }
 }
-GreenCytokineNeutralisation.title = "Green Cytokine Neutralisation";
-GreenCytokineNeutralisation.kind = "Cytokine Neutralisation";
-GreenCytokineNeutralisation.art = "assets/cards/card-virus-cytokine-neutralisation-green.png";
-GreenCytokineNeutralisation.smallart = "assets/cards/small/card-virus-cytokine-neutralisation-green.png";
-GreenCytokineNeutralisation.oneshot = true;
+OrangeCytokineNeutralisation.title = "Orange Cytokine Neutralisation";
+OrangeCytokineNeutralisation.kind = "Cytokine Neutralisation";
+OrangeCytokineNeutralisation.art = "assets/cards/card-virus-cytokine-neutralisation-orange.png";
+OrangeCytokineNeutralisation.smallart = "assets/cards/small/card-virus-cytokine-neutralisation-orange.png";
+OrangeCytokineNeutralisation.oneshot = true;
 
 class RedCytokineNeutralisation extends VirusCard {
     applyEffects() {
@@ -1107,7 +1107,7 @@ let virusCardClassPool = [
     IntestineTropism,
     AntiviralResistance,
     BlueCytokineNeutralisation,
-    GreenCytokineNeutralisation,
+    OrangeCytokineNeutralisation,
     RedCytokineNeutralisation,
     AntibodiesEscapeLiver,
     AntibodiesEscapeLung,
@@ -1332,7 +1332,7 @@ CytokinesRed.needsInteraction = true;
 CytokinesRed.oneshot = false;
 CytokinesRed.causesStateChange = false;
 
-class CytokinesGreen extends ImmuneCard {
+class CytokinesOrange extends ImmuneCard {
     applyEffectsToLoc(row, column) {
         this.applyCytokineProtection(row, column);
     }
@@ -1350,16 +1350,16 @@ class CytokinesGreen extends ImmuneCard {
     }
 
     getEffectCSSClass() {
-        return "cytokine-green";
+        return "cytokine-orange";
     }
 }
-CytokinesGreen.title = "Green Cytokines";
-CytokinesGreen.kind = "Cytokines";
-CytokinesGreen.art = "assets/cards/card-immune-cytokines-green.png";
-CytokinesGreen.smallart = "assets/cards/small/card-immune-cytokines-green.png";
-CytokinesGreen.needsInteraction = true;
-CytokinesGreen.oneshot = false;
-CytokinesGreen.causesStateChange = false;
+CytokinesOrange.title = "Orange Cytokines";
+CytokinesOrange.kind = "Cytokines";
+CytokinesOrange.art = "assets/cards/card-immune-cytokines-orange.png";
+CytokinesOrange.smallart = "assets/cards/small/card-immune-cytokines-orange.png";
+CytokinesOrange.needsInteraction = true;
+CytokinesOrange.oneshot = false;
+CytokinesOrange.causesStateChange = false;
 
 class AntibodiesLiver extends ImmuneCard {
     applyEffectsToLoc(row, column) {
@@ -1567,7 +1567,7 @@ let immuneCardClassPool = [
     Antiviral,
     CytokinesBlue,
     CytokinesRed,
-    CytokinesGreen,
+    CytokinesOrange,
     AntibodiesLiver,
     AntibodiesLung,
     AntibodiesIntestine,
