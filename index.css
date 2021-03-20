@@ -199,20 +199,33 @@ a:visited {
     display: inline-block;
 }
 
+.buttonHolder {
+    margin: 0 auto;
+    padding-top: 2%;
+    padding-bottom: 2%;
+    width: 60%;
+    display: flex;
+    flex-direction: row;
+}
+
 .button {
     background-color:green;
     color: white;
-    width: 30%;
     padding-top: 2%;
     padding-bottom: 2%;
     cursor: default;
     text-align: center;
-    width: 30%;
-    margin: 0 auto;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    border-radius: 20px;
+
+    border-radius: 16px;
     box-shadow: 3px 3px 0 0 rgb(6, 167, 6);
+}
+
+.flex1 {
+    flex-grow: 1;
+}
+
+.flex10 {
+    flex-grow: 10;
 }
 
 #boardText {
