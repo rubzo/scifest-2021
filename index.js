@@ -449,6 +449,7 @@ function setupGame(hardMode) {
         numCardsSelectedInDraftPool: 0,
         interactionCard: null,
         oldReplicationSpeed: null,
+        numCardsPlayedThisTurn: 0,
     }
 
     if (hardMode) {
@@ -558,7 +559,14 @@ handlers[PlayStates.PLAYER_DRAW_PHASE_DONE] = function () {
 }
 
 handlers[PlayStates.PLAYER_PLAY_PHASE_READY] = function () {
-    toastMessage("Play immune cards!");
+    if (isBetaFeatureEnabled(BetaFeature.PLAY_2_PER_TURN)) {
+        toastMessage("Play up to two immune cards!");
+        $("#endTurnButton").text("Stop playing cards - 2 cards remaining");
+    } else {
+        toastMessage("Play immune cards!");
+        $("#endTurnButton").text("Stop playing cards");
+    }
+    gameState.numCardsPlayedThisTurn = 0;
     switchPlayState(PlayStates.PLAYER_PLAY_PHASE_WAITING);
     setupUIForPlayPhase();
     finishedHandlingState();
@@ -847,6 +855,18 @@ function makeCardInactive(card) {
     gameState.activeImmuneCardsChanged = true;
 }
 
+function cardWasPlayed() {
+    gameState.numCardsPlayedThisTurn++;
+    if (isBetaFeatureEnabled(BetaFeature.PLAY_2_PER_TURN)) {
+        // We sneakily get away with this right now
+        $("#endTurnButton").text("Stop playing cards - 1 card remaining");
+        if (gameState.numCardsPlayedThisTurn == 2) {
+            toastMessage("Turn is over!");
+            teardownUIAfterPlayPhase();
+        }
+    }
+}
+
 function leaveInteractiveMode() {
     gameState.interactionCard = null;
     $("#boardText").addClass("gone");
@@ -895,6 +915,20 @@ function playCardUISide(gameCard, uiCard) {
         updateActiveCardPanel();
         updateInactiveCardPanel();
         updateOtherData();
+        cardWasPlayed();
+    }
+}
+
+function teardownUIAfterPlayPhase() {
+    if (gameState.state === PlayStates.PLAYER_PLAY_PHASE_WAITING) {
+        switchPlayState(PlayStates.PLAYER_PLAY_PHASE_DONE);
+        // Force a refresh of inactive cards to get handlers removed
+        gameState.inactiveImmuneCardsChanged = true;
+        updateInactiveCardPanel();
+
+        $("#controlButtons").addClass("gone");
+        $("#endTurnButton").off("click");
+        finishedHandlingState(500);
     }
 }
 
@@ -907,16 +941,7 @@ function setupUIForPlayPhase() {
     updateInactiveCardPanel();
 
     $("#endTurnButton").click(function () {
-        if (gameState.state === PlayStates.PLAYER_PLAY_PHASE_WAITING) {
-            switchPlayState(PlayStates.PLAYER_PLAY_PHASE_DONE);
-            // Force a refresh of inactive cards to get handlers removed
-            gameState.inactiveImmuneCardsChanged = true;
-            updateInactiveCardPanel();
-
-            $("#controlButtons").addClass("gone");
-            $("#endTurnButton").off("click");
-            finishedHandlingState(500);
-        }
+        teardownUIAfterPlayPhase();
     });
     $("#controlButtons").removeClass("gone");
 }
@@ -947,6 +972,7 @@ function onCellClick(row, column) {
         if (gameState.interactionCard.canPlaceHere(row, column)) {
             gameState.interactionCard.applyEffectsToLoc(row, column);
             leaveInteractiveMode();
+            cardWasPlayed();
         } else {
             toastMessage("Cannot play this here!", 1000);
         }
