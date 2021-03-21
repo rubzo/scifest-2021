@@ -377,9 +377,9 @@ function mutateVirus() {
         gameState.virusCards.push(newCard);
         gameState.virusCardsChanged = true;
         if (newCard.oneshot) {
-            toastMessage(`The virus mutated and played ${newCard.title}!`)
+            toastMessage(`The virus mutated and played ${newCard.title}!`, 5000)
         } else {
-            toastMessage(`The virus mutated and gained ${newCard.title}!`)
+            toastMessage(`The virus mutated and gained ${newCard.title}!`, 5000)
         }
     } else {
         // Remove a card...
@@ -388,7 +388,7 @@ function mutateVirus() {
         gameState.virusCards = newVirusCards;
         gameState.virusCardsChanged = true;
         cardToRemove.removeEffects();
-        toastMessage(`The virus mutated and lost ${cardToRemove.title}!`)
+        toastMessage(`The virus mutated and lost ${cardToRemove.title}!`, 5000)
     }
     updateUI();
 }
@@ -544,7 +544,7 @@ handlers[PlayStates.VIRUS_MUTATION_READY] = function () {
 handlers[PlayStates.VIRUS_MUTATION_ACTIVE] = function () {
     mutateVirus();
     switchPlayState(PlayStates.VIRUS_MUTATION_DONE);
-    finishedHandlingState();
+    finishedHandlingState(5000);
 }
 
 handlers[PlayStates.VIRUS_MUTATION_DONE] = function () {

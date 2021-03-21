@@ -332,7 +332,7 @@ a:visited {
     max-width: 800px;
     margin-left: -400px;
     width: auto;
-    background-color: orange;
+    background-color: rgb(236, 154, 0);
 
     color: #fff; /* White text color */
     font-size: 3em;
@@ -341,7 +341,7 @@ a:visited {
     padding: 20px; /* Padding */
     position: fixed; /* Sit on top of the screen */
     z-index: 10;
-    top: 30%;
+    top: 80%;
     box-shadow: 0 12px 20px 0 rgba(0, 0, 0, 0.5);
 }
 
@@ -361,20 +361,13 @@ a:visited {
 */
 
 @keyframes fadein {
-  from {top: 15%; opacity: 0;}
-  to {top: 30%; opacity: 1;}
+  from {top: 100%; opacity: 0;}
+  to {top: 80%; opacity: 1;}
 }
-
-/*
-@-webkit-keyframes fadeout {
-  from {top: 400px; opacity: 1;}
-  to {top: 0; opacity: 0;}
-}
-*/
 
 @keyframes fadeout {
-  from {top: 30%; opacity: 1;}
-  to {top: 15%; opacity: 0;}
+  from {top: 80%; opacity: 1;}
+  to {top: 100%; opacity: 0;}
 }
 
 /* --- */
@@ -397,7 +390,7 @@ a:visited {
     padding: 16px; /* Padding */
     position: fixed; /* Sit on top of the screen */
     z-index: 6;
-    top: 40%;
+    top: 20%;
 
     box-shadow: 0 12px 20px 0 rgba(0, 0, 0, 0.5);
 }
@@ -409,13 +402,13 @@ a:visited {
 }
 
 @-webkit-keyframes cardDisplayFadein {
-  from {top: 10%; opacity: 0;}
-  to {top: 40%; opacity: 1;}
+  from {top: -50%; opacity: 0;}
+  to {top: 20%; opacity: 1;}
 }
 
 @keyframes cardDisplayFadein {
-  from {top: 10%; opacity: 0;}
-  to {top: 40%; opacity: 1;}
+  from {top: -50%; opacity: 0;}
+  to {top: 20%; opacity: 1;}
 }
 
 .cardPanelTitle {
