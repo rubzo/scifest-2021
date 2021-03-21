@@ -459,6 +459,12 @@ function setupGame(hardMode) {
         gameState.hardMode = false;
     }
 
+    if (isBetaFeatureEnabled(BetaFeature.CHOOSE_3_FROM_5)) {
+        // Guess these weren't constant after all.
+        NUM_CARDS_TO_DRAFT_FROM_PER_TURN = 5;
+        NUM_CARDS_TO_SELECT_IN_DRAFT_PER_TURN = 3;
+    }
+
     gameState.virusCards = generateInitialVirusCards();
     gameState.virusCardsChanged = true;
     placeVirusBasedOnCards();
@@ -722,7 +728,12 @@ function updateGridView() {
 }
 
 function updateChooseCardPanel() {
-    $("#chooseCardMsg").text("Pick two immune cards");
+    let cardNumberText = "two";
+    if (isBetaFeatureEnabled(BetaFeature.CHOOSE_3_FROM_5)) {
+        cardNumberText = "three";
+    }
+
+    $("#chooseCardMsg").text(`Pick ${cardNumberText} immune cards`);
     $("#chooseCardPanel").empty();
     gameState.playerDraftPool.forEach(function (item, _) {
         let cardDiv = getInteractiveDivForCard(item);
@@ -745,7 +756,7 @@ function updateChooseCardPanel() {
     $("#chooseCardMsg").click(function () {
         if ($("#chooseCardPanel").hasClass("gone")) {
             $("#chooseCardPanel").removeClass("gone");
-            $("#chooseCardMsg").text("Pick two immune cards");
+            $("#chooseCardMsg").text(`Pick ${cardNumberText} immune cards`);
         } else {
             $("#chooseCardPanel").addClass("gone");
             $("#chooseCardMsg").text("Click to show cards");
