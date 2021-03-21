@@ -408,9 +408,9 @@ function mutateVirus() {
         gameState.virusCards.push(newCard);
         gameState.virusCardsChanged = true;
         if (newCard.oneshot) {
-            toastMessage(`The virus mutated and played ${newCard.title}!`, 5000)
+            toastMessage(`The virus mutated and played ${newCard.title}!`);
         } else {
-            toastMessage(`The virus mutated and gained ${newCard.title}!`, 5000)
+            toastMessage(`The virus mutated and gained ${newCard.title}!`);
         }
     } else {
         // Remove a card...
@@ -419,7 +419,7 @@ function mutateVirus() {
         gameState.virusCards = newVirusCards;
         gameState.virusCardsChanged = true;
         cardToRemove.removeEffects();
-        toastMessage(`The virus mutated and lost ${cardToRemove.title}!`, 5000)
+        toastMessage(`The virus mutated and lost ${cardToRemove.title}!`);
     }
     updateUI();
 }
@@ -732,6 +732,7 @@ function updateChooseCardPanel() {
             updateCardPanels();
             if (checkIfFinishedDrafting()) {
                 $("#chooseCardPanel").empty();
+                $("#chooseCardMsg").off("click");
                 hideChooseCardPanel();
 
                 switchPlayState(PlayStates.PLAYER_DRAW_PHASE_DONE);
@@ -740,6 +741,15 @@ function updateChooseCardPanel() {
             }
         });
         $("#chooseCardPanel").append(cardDiv);
+    });
+    $("#chooseCardMsg").click(function () {
+        if ($("#chooseCardPanel").hasClass("gone")) {
+            $("#chooseCardPanel").removeClass("gone");
+            $("#chooseCardMsg").text("Pick two immune cards");
+        } else {
+            $("#chooseCardPanel").addClass("gone");
+            $("#chooseCardMsg").text("Click to show cards");
+        }
     });
 }
 
