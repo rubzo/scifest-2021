@@ -1267,7 +1267,17 @@ class ImmuneCard {
         console.log("WARNING: getEffectCSSClass not implemented for an immune card that needs it?");
     }
 
-    getAffectedCellsForCytokine(row, column) {
+    getAffectedCellsForWeakCytokine(row, column) {
+        let affectedCells = [];
+        if (!gameState.grid[row][column].isClean()) {
+            return [];
+        } else {
+            affectedCells.push([row, column]);
+        }
+        return affectedCells;
+    }
+
+    getAffectedCellsForMediumCytokine(row, column) {
         let affectedCells = [];
         if (!gameState.grid[row][column].isClean()) {
             return [];
@@ -1293,8 +1303,81 @@ class ImmuneCard {
         return affectedCells;
     }
 
-    applyCytokineProtection(row, column) {
-        let affectedCells = this.getAffectedCellsForCytokine(row, column);
+    getAffectedCellsForStrongCytokine(row, column) {
+        let affectedCells = [];
+
+        // 1 2 3
+        // 4 5 6
+        // 7 8 9
+
+        // Position 5
+        if (!gameState.grid[row][column].isClean()) {
+            return [];
+        } else {
+            affectedCells.push([row, column]);
+        }
+
+        // Position 1
+        if (column != 0
+            && row != 0
+            && gameState.grid[row - 1][column - 1].isSameTissue(gameState.grid[row][column])
+            && gameState.grid[row - 1][column - 1].isClean()) {
+            affectedCells.push([row - 1, column - 1]);
+        }
+
+        // Position 2
+        if (row != 0 && gameState.grid[row - 1][column].isClean()) {
+            affectedCells.push([row - 1, column]);
+        }
+
+        // Position 3
+        if (row != 0
+            && column != ALL_TISSUE_WIDTH - 1
+            && gameState.grid[row - 1][column + 1].isSameTissue(gameState.grid[row][column])
+            && gameState.grid[row - 1][column + 1].isClean()) {
+            affectedCells.push([row - 1, column + 1]);
+        }
+
+        // Position 4
+        if (column != 0
+            && gameState.grid[row][column - 1].isSameTissue(gameState.grid[row][column])
+            && gameState.grid[row][column - 1].isClean()) {
+            affectedCells.push([row, column - 1]);
+        }
+
+        // Position 6
+        if (column != ALL_TISSUE_WIDTH - 1
+            && gameState.grid[row][column + 1].isSameTissue(gameState.grid[row][column])
+            && gameState.grid[row][column + 1].isClean()) {
+            affectedCells.push([row, column + 1]);
+        }
+
+        // Position 7
+        if (column != 0
+            && row != TISSUE_HEIGHT - 1
+            && gameState.grid[row + 1][column - 1].isSameTissue(gameState.grid[row][column])
+            && gameState.grid[row + 1][column - 1].isClean()) {
+            affectedCells.push([row + 1, column - 1]);
+        }
+
+        // Position 8
+        if (row != TISSUE_HEIGHT - 1 && gameState.grid[row + 1][column].isClean()) {
+            affectedCells.push([row + 1, column]);
+        }
+
+        // Position 9
+        if (row != TISSUE_HEIGHT - 1
+            && column != ALL_TISSUE_WIDTH - 1
+            && gameState.grid[row + 1][column + 1].isSameTissue(gameState.grid[row][column])
+            && gameState.grid[row + 1][column + 1].isClean()) {
+            affectedCells.push([row + 1, column + 1]);
+        }
+
+        return affectedCells;
+    }
+
+    applyCytokineProtection(row, column, affectedFunction) {
+        let affectedCells = affectedFunction(row, column);
         gameState.interactionCard.targetedCells = affectedCells;
         for (let coord of affectedCells) {
             gameState.grid[coord[0]][coord[1]].protectWith(gameState.interactionCard);
@@ -1395,7 +1478,10 @@ Antiviral.causesStateChange = false;
 
 class CytokinesBlue extends ImmuneCard {
     applyEffectsToLoc(row, column) {
-        this.applyCytokineProtection(row, column);
+        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_COLOR_DIFFS)) {
+            return this.applyCytokineProtection(row, column, this.getAffectedCellsForWeakCytokine);
+        }
+        this.applyCytokineProtection(row, column, this.getAffectedCellsForMediumCytokine);
     }
 
     removeEffects() {
@@ -1403,7 +1489,10 @@ class CytokinesBlue extends ImmuneCard {
     }
 
     getAffectedCells(row, column) {
-        return this.getAffectedCellsForCytokine(row, column);
+        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_COLOR_DIFFS)) {
+            return this.getAffectedCellsForWeakCytokine(row, column);
+        }
+        return this.getAffectedCellsForMediumCytokine(row, column);
     }
 
     canPlaceHere(row, column) {
@@ -1424,7 +1513,10 @@ CytokinesBlue.causesStateChange = false;
 
 class CytokinesRed extends ImmuneCard {
     applyEffectsToLoc(row, column) {
-        this.applyCytokineProtection(row, column);
+        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_COLOR_DIFFS)) {
+            return this.applyCytokineProtection(row, column, this.getAffectedCellsForStrongCytokine);
+        }
+        this.applyCytokineProtection(row, column, this.getAffectedCellsForMediumCytokine);
     }
 
     removeEffects() {
@@ -1432,7 +1524,10 @@ class CytokinesRed extends ImmuneCard {
     }
 
     getAffectedCells(row, column) {
-        return this.getAffectedCellsForCytokine(row, column);
+        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_COLOR_DIFFS)) {
+            return this.getAffectedCellsForStrongCytokine(row, column);
+        }
+        return this.getAffectedCellsForMediumCytokine(row, column);
     }
 
     canPlaceHere(row, column) {
@@ -1453,7 +1548,10 @@ CytokinesRed.causesStateChange = false;
 
 class CytokinesOrange extends ImmuneCard {
     applyEffectsToLoc(row, column) {
-        this.applyCytokineProtection(row, column);
+        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_COLOR_DIFFS)) {
+            return this.applyCytokineProtection(row, column, this.getAffectedCellsForMediumCytokine);
+        }
+        this.applyCytokineProtection(row, column, this.getAffectedCellsForMediumCytokine);
     }
 
     removeEffects() {
@@ -1461,7 +1559,10 @@ class CytokinesOrange extends ImmuneCard {
     }
 
     getAffectedCells(row, column) {
-        return this.getAffectedCellsForCytokine(row, column);
+        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_COLOR_DIFFS)) {
+            return this.getAffectedCellsForMediumCytokine(row, column);
+        }
+        return this.getAffectedCellsForMediumCytokine(row, column);
     }
 
     canPlaceHere(row, column) {
