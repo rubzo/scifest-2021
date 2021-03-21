@@ -43,6 +43,37 @@ function randomElement(ar) {
     return ar[randomN(ar.length)];
 }
 
+//
+// -- BETA FEATURES --
+//
+const BetaFeature = {
+    CYTOKINE_COLOR_DIFFS: "bfCytokineColorDiffs",
+    CYTOKINE_NEUT_PREVENTS_PLAY: "bfCytokineNeutPreventsPlay",
+    CYTOKINE_TIME_LIMIT: "bfCytokineTimeLimit",
+    CHOOSE_3_FROM_5: "bfChoose3From5",
+    PLAY_2_PER_TURN: "bfPlay2PerTurn",
+}
+
+let betaFeatures = null;
+
+function checkBetaFeatureInUI(featureName) {
+    return $(`#${featureName}`).is(":checked");
+}
+
+function setBetaFeaturesFromUI() {
+    betaFeatures = {};
+    for (const [_, value] of Object.entries(BetaFeature)) {
+        betaFeatures[value] = checkBetaFeatureInUI(value);
+    }
+}
+
+function isBetaFeatureEnabled(feature) {
+    return betaFeatures[feature];
+}
+//
+// -- END BETA FEATURES --
+//
+
 // Game state related vars
 let gameState = null;
 // used to make sure every card has a unique ID
@@ -944,8 +975,10 @@ function alertReplicationSpeedChanged() {
     }, 10000);
 }
 
+
 function hookupDifficultyButtons() {
     $("#startNormalButton").click(function () {
+        setBetaFeaturesFromUI();
         setupGame(false /* normal */);
         $("#introText").addClass("gone")
         $("#wholeGame").removeClass("gone");
@@ -955,12 +988,22 @@ function hookupDifficultyButtons() {
     });
 
     $("#startHardButton").click(function () {
+        setBetaFeaturesFromUI();
         setupGame(true /* hard */);
         $("#introText").addClass("gone")
         $("#wholeGame").removeClass("gone");
         updateUI();
         switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_READY);
         finishedHandlingState(500);
+    });
+}
+
+function hookupBetaFeaturePanel() {
+    $("#betaFeatureTitle").click(function () {
+        $("#betaFeaturePanel").removeClass("gone");
+        $("#betaFeatureTitle").text("Beta Features!")
+        $("#betaFeatureTitle").addClass("big")
+        $("#betaFeatureTitle").off("click");
     });
 }
 
@@ -971,6 +1014,7 @@ function onLoad() {
     generateGrid($("#intestineCells"), 2, "Intestine");
 
     hookupDifficultyButtons();
+    hookupBetaFeaturePanel();
 }
 
 $(document).ready(onLoad);

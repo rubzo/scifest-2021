@@ -419,3 +419,7 @@ a:visited {
 .highlight {
     background-color: red;
 }
+
+.noICursor {
+    cursor: default;
+}
