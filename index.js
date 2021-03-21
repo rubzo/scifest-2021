@@ -396,10 +396,6 @@ function getSuitableVirusCardToRemove() {
 }
 
 function mutateVirus() {
-    // Cleanup any oneshot cards that were used last turn.
-    gameState.virusCards = gameState.virusCards.filter(c => !c.oneshot);
-    gameState.virusCardsChanged = true;
-
     if (percentChance(80) || gameState.virusCards.length == 1) {
         // Add a new card...
         let newCardClass = getSuitableNewVirusCardClass();
@@ -577,7 +573,19 @@ handlers[PlayStates.PLAYER_PLAY_PHASE_DONE] = function () {
     finishedHandlingState(1000);
 }
 
+// TODO MOVE
+function checkVirusCardExpiry() {
+    gameState.virusCards.forEach(function (card) {
+        if (card.expires) {
+            card.duration--;
+        }
+    });
+    gameState.virusCards = gameState.virusCards.filter(c => (!c.expires) || (c.duration > 0));
+    gameState.virusCardsChanged = true;
+}
+
 handlers[PlayStates.VIRUS_MUTATION_READY] = function () {
+    checkVirusCardExpiry();
     if (percentChance(60)) {
         switchPlayState(PlayStates.VIRUS_MUTATION_ACTIVE);
     } else {
@@ -1077,7 +1085,8 @@ class VirusCard {
         this.kind = this.constructor.kind;
         this.art = this.constructor.art;
         this.smallart = this.constructor.smallart;
-        this.oneshot = this.constructor.oneshot;
+        this.expires = this.constructor.expires;
+        this.duration = this.constructor.duration;
     }
 
     applyEffects() {
@@ -1132,7 +1141,8 @@ LiverTropism.title = "Liver Tropism";
 LiverTropism.kind = "Tropism";
 LiverTropism.art = "assets/cards/card-virus-tropism-liver.png";
 LiverTropism.smallart = "assets/cards/small/card-virus-tropism-liver.png";
-LiverTropism.oneshot = false;
+LiverTropism.expires = false;
+LiverTropism.duration = 0;
 
 class LungTropism extends VirusCard {
     applyEffects() {
@@ -1145,7 +1155,8 @@ LungTropism.title = "Lung Tropism";
 LungTropism.kind = "Tropism";
 LungTropism.art = "assets/cards/card-virus-tropism-lung.png";
 LungTropism.smallart = "assets/cards/small/card-virus-tropism-lung.png";
-LungTropism.oneshot = false;
+LungTropism.expires = false;
+LungTropism.duration = 0;
 
 class IntestineTropism extends VirusCard {
     applyEffects() {
@@ -1158,7 +1169,8 @@ IntestineTropism.title = "Intestine Tropism";
 IntestineTropism.kind = "Tropism";
 IntestineTropism.art = "assets/cards/card-virus-tropism-intestine.png";
 IntestineTropism.smallart = "assets/cards/small/card-virus-tropism-intestine.png";
-IntestineTropism.oneshot = false;
+IntestineTropism.expires = false;
+IntestineTropism.duration = 0;
 
 class AntiviralResistance extends VirusCard {
     applyEffects() {
@@ -1184,7 +1196,8 @@ AntiviralResistance.title = "Antiviral Resistance";
 AntiviralResistance.kind = "Antiviral Resistance";
 AntiviralResistance.art = "assets/cards/card-virus-antiviral-resistance.png";
 AntiviralResistance.smallart = "assets/cards/small/card-virus-antiviral-resistance.png";
-AntiviralResistance.oneshot = false;
+AntiviralResistance.expires = false;
+AntiviralResistance.duration = 0;
 
 class BlueCytokineNeutralisation extends VirusCard {
     applyEffects() {
@@ -1195,7 +1208,8 @@ BlueCytokineNeutralisation.title = "Blue Cytokine Neutralisation";
 BlueCytokineNeutralisation.kind = "Cytokine Neutralisation";
 BlueCytokineNeutralisation.art = "assets/cards/card-virus-cytokine-neutralisation-blue.png";
 BlueCytokineNeutralisation.smallart = "assets/cards/small/card-virus-cytokine-neutralisation-blue.png";
-BlueCytokineNeutralisation.oneshot = true;
+BlueCytokineNeutralisation.expires = true;
+BlueCytokineNeutralisation.duration = 2;
 
 class OrangeCytokineNeutralisation extends VirusCard {
     applyEffects() {
@@ -1206,7 +1220,8 @@ OrangeCytokineNeutralisation.title = "Orange Cytokine Neutralisation";
 OrangeCytokineNeutralisation.kind = "Cytokine Neutralisation";
 OrangeCytokineNeutralisation.art = "assets/cards/card-virus-cytokine-neutralisation-orange.png";
 OrangeCytokineNeutralisation.smallart = "assets/cards/small/card-virus-cytokine-neutralisation-orange.png";
-OrangeCytokineNeutralisation.oneshot = true;
+OrangeCytokineNeutralisation.expires = true;
+OrangeCytokineNeutralisation.duration = 2;
 
 class RedCytokineNeutralisation extends VirusCard {
     applyEffects() {
@@ -1217,7 +1232,8 @@ RedCytokineNeutralisation.title = "Red Cytokine Neutralisation";
 RedCytokineNeutralisation.kind = "Cytokine Neutralisation";
 RedCytokineNeutralisation.art = "assets/cards/card-virus-cytokine-neutralisation-red.png";
 RedCytokineNeutralisation.smallart = "assets/cards/small/card-virus-cytokine-neutralisation-red.png";
-RedCytokineNeutralisation.oneshot = true;
+RedCytokineNeutralisation.expires = true;
+RedCytokineNeutralisation.duration = 2;
 
 class AntibodiesEscapeLiver extends VirusCard {
     applyEffects() {
@@ -1228,7 +1244,8 @@ AntibodiesEscapeLiver.title = "Antibodies Escape Liver";
 AntibodiesEscapeLiver.kind = "Antibodies Escape";
 AntibodiesEscapeLiver.art = "assets/cards/card-virus-antibodies-escape-liver.png";
 AntibodiesEscapeLiver.smallart = "assets/cards/small/card-virus-antibodies-escape-liver.png";
-AntibodiesEscapeLiver.oneshot = true;
+AntibodiesEscapeLiver.expires = true;
+AntibodiesEscapeLiver.duration = 1;
 
 class AntibodiesEscapeLung extends VirusCard {
     applyEffects() {
@@ -1239,7 +1256,8 @@ AntibodiesEscapeLung.title = "Antibodies Escape Lung";
 AntibodiesEscapeLung.kind = "Antibodies Escape";
 AntibodiesEscapeLung.art = "assets/cards/card-virus-antibodies-escape-lung.png";
 AntibodiesEscapeLung.smallart = "assets/cards/small/card-virus-antibodies-escape-lung.png";
-AntibodiesEscapeLung.oneshot = true;
+AntibodiesEscapeLung.expires = true;
+AntibodiesEscapeLung.duration = 1;
 
 class AntibodiesEscapeIntestine extends VirusCard {
     applyEffects() {
@@ -1250,7 +1268,8 @@ AntibodiesEscapeIntestine.title = "Antibodies Escape Intestine";
 AntibodiesEscapeIntestine.kind = "Antibodies Escape";
 AntibodiesEscapeIntestine.art = "assets/cards/card-virus-antibodies-escape-intestine.png";
 AntibodiesEscapeIntestine.smallart = "assets/cards/small/card-virus-antibodies-escape-intestine.png";
-AntibodiesEscapeIntestine.oneshot = true;
+AntibodiesEscapeIntestine.expires = true;
+AntibodiesEscapeIntestine.duration = 1;
 
 let virusCardClassPool = [
     LiverTropism,
