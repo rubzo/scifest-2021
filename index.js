@@ -294,6 +294,16 @@ function findValidVirusSpawnPoints() {
     return validIndices;
 }
 
+function checkVirusCardExpiry() {
+    gameState.virusCards.forEach(function (card) {
+        if (card.expires) {
+            card.duration--;
+        }
+    });
+    gameState.virusCards = gameState.virusCards.filter(c => (!c.expires) || (c.duration > 0));
+    gameState.virusCardsChanged = true;
+}
+
 function generateInitialVirusCards() {
     let cards = [];
 
@@ -573,17 +583,6 @@ handlers[PlayStates.PLAYER_PLAY_PHASE_DONE] = function () {
     finishedHandlingState(1000);
 }
 
-// TODO MOVE
-function checkVirusCardExpiry() {
-    gameState.virusCards.forEach(function (card) {
-        if (card.expires) {
-            card.duration--;
-        }
-    });
-    gameState.virusCards = gameState.virusCards.filter(c => (!c.expires) || (c.duration > 0));
-    gameState.virusCardsChanged = true;
-}
-
 handlers[PlayStates.VIRUS_MUTATION_READY] = function () {
     checkVirusCardExpiry();
     if (percentChance(60)) {
@@ -805,8 +804,10 @@ function updateActiveCardPanel() {
 function createCardClickHandler(gameCard, uiCard) {
     return function () {
         if (gameState.state === PlayStates.PLAYER_PLAY_PHASE_WAITING) {
-            playCardUISide(gameCard, uiCard);
-            $(uiCard).off("click");
+            let cardWasHandled = playCardUISide(gameCard, uiCard);
+            if (cardWasHandled) {
+                $(uiCard).off("click");
+            }
             // Do we ever need to update anything else? GridView?
         }
     }
@@ -912,11 +913,17 @@ function enterInteractiveMode(gameCard, uiCard) {
     switchPlayState(PlayStates.PLAYER_PLAY_PHASE_INTERACTING);
 }
 
+// This function returns true if the card was handled successfully.
 function playCardUISide(gameCard, uiCard) {
-    if (gameCard.causesStateChange) {
+    if (!gameCard.canBePlayed()) {
+        toastMessage(gameCard.getUnplayableReason());
+        return false;
+    } else if (gameCard.causesStateChange) {
         console.log("THIS SHOULD NOT BE HAPPENING - gameCard.causesStateChange!");
+        return false;
     } else if (gameCard.needsInteraction) {
         enterInteractiveMode(gameCard, uiCard);
+        return true;
     } else {
         gameCard.applyEffects();
         makeCardActive(gameCard);
@@ -924,6 +931,7 @@ function playCardUISide(gameCard, uiCard) {
         updateInactiveCardPanel();
         updateOtherData();
         cardWasPlayed();
+        return true;
     }
 }
 
@@ -1323,6 +1331,16 @@ class ImmuneCard {
         console.log("WARNING: getEffectCSSClass not implemented for an immune card that needs it?");
     }
 
+    // We expect this to be overridden if required
+    canBePlayed() {
+        return true;
+    }
+
+    getUnplayableReason() {
+        console.log("WARNING: getUnplayableReason not implemented for an immune card that needs it?");
+        return "UNKNOWN REASON";
+    }
+
     getAffectedCellsForWeakCytokine(row, column) {
         let affectedCells = [];
         if (!gameState.grid[row][column].isClean()) {
@@ -1558,6 +1576,22 @@ class CytokinesBlue extends ImmuneCard {
     getEffectCSSClass() {
         return "cytokine-blue";
     }
+
+    canBePlayed() {
+        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_NEUT_PREVENTS_PLAY)) {
+            return (
+                gameState.virusCards.filter(
+                    c => c.title === "Blue Cytokine Neutralisation"
+                ).length == 0
+            );
+        } else {
+            return true;
+        }
+    }
+
+    getUnplayableReason() {
+        return "Cannot play this card while the virus has a Blue Cytokine Neutralisation card!";
+    }
 }
 CytokinesBlue.title = "Blue Cytokines";
 CytokinesBlue.kind = "Cytokines";
@@ -1593,6 +1627,22 @@ class CytokinesRed extends ImmuneCard {
     getEffectCSSClass() {
         return "cytokine-red";
     }
+
+    canBePlayed() {
+        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_NEUT_PREVENTS_PLAY)) {
+            return (
+                gameState.virusCards.filter(
+                    c => c.title === "Red Cytokine Neutralisation"
+                ).length == 0
+            );
+        } else {
+            return true;
+        }
+    }
+
+    getUnplayableReason() {
+        return "Cannot play this card while the virus has a Red Cytokine Neutralisation card!";
+    }
 }
 CytokinesRed.title = "Red Cytokines";
 CytokinesRed.kind = "Cytokines";
@@ -1627,6 +1677,22 @@ class CytokinesOrange extends ImmuneCard {
 
     getEffectCSSClass() {
         return "cytokine-orange";
+    }
+
+    canBePlayed() {
+        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_NEUT_PREVENTS_PLAY)) {
+            return (
+                gameState.virusCards.filter(
+                    c => c.title === "Orange Cytokine Neutralisation"
+                ).length == 0
+            );
+        } else {
+            return true;
+        }
+    }
+
+    getUnplayableReason() {
+        return "Cannot play this card while the virus has an Orange Cytokine Neutralisation card!";
     }
 }
 CytokinesOrange.title = "Orange Cytokines";
