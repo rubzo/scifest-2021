@@ -428,3 +428,7 @@ a:visited {
 .noICursor {
     cursor: default;
 }
+
+.tropismPresent {
+    background-color: rgb(255, 184, 184);
+}

@@ -735,6 +735,9 @@ function generateGridForTissue(cellsGridDiv, tissueIndex) {
 }
 
 function updateGridView() {
+    let liverTropismPresent = gameState.virusCards.filter(c => c.title == "Liver Tropism").length > 0;
+    let lungTropismPresent = gameState.virusCards.filter(c => c.title == "Lung Tropism").length > 0;
+    let intestineTropismPresent = gameState.virusCards.filter(c => c.title == "Intestine Tropism").length > 0;
     for (let row = 0; row < TISSUE_HEIGHT; row++) {
         for (let column = 0; column < ALL_TISSUE_WIDTH; column++) {
             let div = gridDivs[row][column];
@@ -742,10 +745,19 @@ function updateGridView() {
             let tissueName = "";
             if (Math.floor(column / TISSUE_WIDTH) == 0) {
                 tissueName = "Liver";
+                if (liverTropismPresent) {
+                    div.addClass("tropismPresent");
+                }
             } else if (Math.floor(column / TISSUE_WIDTH) == 1) {
                 tissueName = "Lung";
+                if (lungTropismPresent) {
+                    div.addClass("tropismPresent");
+                }
             } else {
                 tissueName = "Intestine";
+                if (intestineTropismPresent) {
+                    div.addClass("tropismPresent");
+                }
             }
             div.addClass("tissueCellColumn");
             div.addClass(`tissueCellColumn${tissueName}`);
