@@ -1269,6 +1269,13 @@ AntiviralResistance.expires = false;
 AntiviralResistance.duration = 0;
 
 class BlueCytokineNeutralisation extends VirusCard {
+    constructor() {
+        super();
+        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_NEUT_PREVENTS_PLAY)) {
+            this.art = "assets/cards/card-virus-cytokine-neutralisation-blue-temp.png";
+        }
+    }
+
     applyEffects() {
         this.searchAndRemoveRandomImmuneCardWithTitle("Blue Cytokines");
     }
@@ -1283,6 +1290,13 @@ BlueCytokineNeutralisation.expires = true;
 BlueCytokineNeutralisation.duration = 2;
 
 class OrangeCytokineNeutralisation extends VirusCard {
+    constructor() {
+        super();
+        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_NEUT_PREVENTS_PLAY)) {
+            this.art = "assets/cards/card-virus-cytokine-neutralisation-orange-temp.png";
+        }
+    }
+
     applyEffects() {
         this.searchAndRemoveRandomImmuneCardWithTitle("Orange Cytokines");
     }
@@ -1297,6 +1311,13 @@ OrangeCytokineNeutralisation.expires = true;
 OrangeCytokineNeutralisation.duration = 2;
 
 class RedCytokineNeutralisation extends VirusCard {
+    constructor() {
+        super();
+        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_NEUT_PREVENTS_PLAY)) {
+            this.art = "assets/cards/card-virus-cytokine-neutralisation-red-temp.png";
+        }
+    }
+
     applyEffects() {
         this.searchAndRemoveRandomImmuneCardWithTitle("Red Cytokines");
     }
@@ -1630,6 +1651,7 @@ class CytokinesBlue extends ImmuneCard {
         super()
         if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_TIME_LIMIT)) {
             this.expires = true;
+            this.art = "assets/cards/card-immune-cytokines-blue-temp.png";
         }
     }
 
@@ -1686,6 +1708,7 @@ class CytokinesRed extends ImmuneCard {
         super()
         if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_TIME_LIMIT)) {
             this.expires = true;
+            this.art = "assets/cards/card-immune-cytokines-red-temp.png";
         }
     }
 
@@ -1742,6 +1765,7 @@ class CytokinesOrange extends ImmuneCard {
         super()
         if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_TIME_LIMIT)) {
             this.expires = true;
+            this.art = "assets/cards/card-immune-cytokines-orange-temp.png";
         }
     }
 
