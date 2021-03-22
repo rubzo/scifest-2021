@@ -47,7 +47,6 @@ function randomElement(ar) {
 // -- BETA FEATURES --
 //
 const BetaFeature = {
-    CYTOKINE_COLOR_DIFFS: "bfCytokineColorDiffs",
     CYTOKINE_NEUT_PREVENTS_PLAY: "bfCytokineNeutPreventsPlay",
     CYTOKINE_TIME_LIMIT: "bfCytokineTimeLimit",
     CHOOSE_3_FROM_5: "bfChoose3From5",
@@ -1635,10 +1634,7 @@ class CytokinesBlue extends ImmuneCard {
     }
 
     applyEffectsToLoc(row, column) {
-        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_COLOR_DIFFS)) {
-            return this.applyCytokineProtection(row, column, this.getAffectedCellsForWeakCytokine);
-        }
-        this.applyCytokineProtection(row, column, this.getAffectedCellsForMediumCytokine);
+        return this.applyCytokineProtection(row, column, this.getAffectedCellsForWeakCytokine);
     }
 
     removeEffects() {
@@ -1646,10 +1642,7 @@ class CytokinesBlue extends ImmuneCard {
     }
 
     getAffectedCells(row, column) {
-        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_COLOR_DIFFS)) {
-            return this.getAffectedCellsForWeakCytokine(row, column);
-        }
-        return this.getAffectedCellsForMediumCytokine(row, column);
+        return this.getAffectedCellsForWeakCytokine(row, column);
     }
 
     canPlaceHere(row, column) {
@@ -1697,10 +1690,7 @@ class CytokinesRed extends ImmuneCard {
     }
 
     applyEffectsToLoc(row, column) {
-        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_COLOR_DIFFS)) {
-            return this.applyCytokineProtection(row, column, this.getAffectedCellsForStrongCytokine);
-        }
-        this.applyCytokineProtection(row, column, this.getAffectedCellsForMediumCytokine);
+        return this.applyCytokineProtection(row, column, this.getAffectedCellsForStrongCytokine);
     }
 
     removeEffects() {
@@ -1708,10 +1698,7 @@ class CytokinesRed extends ImmuneCard {
     }
 
     getAffectedCells(row, column) {
-        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_COLOR_DIFFS)) {
-            return this.getAffectedCellsForStrongCytokine(row, column);
-        }
-        return this.getAffectedCellsForMediumCytokine(row, column);
+        return this.getAffectedCellsForStrongCytokine(row, column);
     }
 
     canPlaceHere(row, column) {
@@ -1759,10 +1746,7 @@ class CytokinesOrange extends ImmuneCard {
     }
 
     applyEffectsToLoc(row, column) {
-        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_COLOR_DIFFS)) {
-            return this.applyCytokineProtection(row, column, this.getAffectedCellsForMediumCytokine);
-        }
-        this.applyCytokineProtection(row, column, this.getAffectedCellsForMediumCytokine);
+        return this.applyCytokineProtection(row, column, this.getAffectedCellsForMediumCytokine);
     }
 
     removeEffects() {
@@ -1770,9 +1754,6 @@ class CytokinesOrange extends ImmuneCard {
     }
 
     getAffectedCells(row, column) {
-        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_COLOR_DIFFS)) {
-            return this.getAffectedCellsForMediumCytokine(row, column);
-        }
         return this.getAffectedCellsForMediumCytokine(row, column);
     }
 
