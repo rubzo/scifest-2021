@@ -127,6 +127,27 @@ a:visited {
     background-position: 12px 8px;
 }
 
+.cytokine-red-3 {
+    background-image: url("assets/cytokine-red-3.png");
+    background-size: 60%;
+    background-repeat: no-repeat;
+    background-position: 12px 8px;
+}
+
+.cytokine-red-2 {
+    background-image: url("assets/cytokine-red-2.png");
+    background-size: 60%;
+    background-repeat: no-repeat;
+    background-position: 12px 8px;
+}
+
+.cytokine-red-1 {
+    background-image: url("assets/cytokine-red-1.png");
+    background-size: 60%;
+    background-repeat: no-repeat;
+    background-position: 12px 8px;
+}
+
 .cytokine-blue {
     background-image: url("assets/cytokine-blue.png");
     background-size: 60%;
@@ -134,8 +155,50 @@ a:visited {
     background-position: 12px 8px;
 }
 
+.cytokine-blue-3 {
+    background-image: url("assets/cytokine-blue-3.png");
+    background-size: 60%;
+    background-repeat: no-repeat;
+    background-position: 12px 8px;
+}
+
+.cytokine-blue-2 {
+    background-image: url("assets/cytokine-blue-2.png");
+    background-size: 60%;
+    background-repeat: no-repeat;
+    background-position: 12px 8px;
+}
+
+.cytokine-blue-1 {
+    background-image: url("assets/cytokine-blue-1.png");
+    background-size: 60%;
+    background-repeat: no-repeat;
+    background-position: 12px 8px;
+}
+
 .cytokine-orange {
     background-image: url("assets/cytokine-orange.png");
+    background-size: 60%;
+    background-repeat: no-repeat;
+    background-position: 12px 8px;
+}
+
+.cytokine-orange-3 {
+    background-image: url("assets/cytokine-orange-3.png");
+    background-size: 60%;
+    background-repeat: no-repeat;
+    background-position: 12px 8px;
+}
+
+.cytokine-orange-2 {
+    background-image: url("assets/cytokine-orange-2.png");
+    background-size: 60%;
+    background-repeat: no-repeat;
+    background-position: 12px 8px;
+}
+
+.cytokine-orange-1 {
+    background-image: url("assets/cytokine-orange-1.png");
     background-size: 60%;
     background-repeat: no-repeat;
     background-position: 12px 8px;

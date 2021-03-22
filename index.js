@@ -307,6 +307,19 @@ function checkVirusCardExpiry() {
     gameState.virusCardsChanged = true;
 }
 
+function checkImmuneCardExpiry() {
+    gameState.activeImmuneCards.forEach(function (card) {
+        if (card.expires) {
+            card.duration--;
+            if (card.duration == 0) {
+                card.removeEffects();
+            }
+        }
+    });
+    gameState.activeImmuneCards = gameState.activeImmuneCards.filter(c => (!c.expires) || (c.duration > 0));
+    gameState.activeImmuneCardsChanged = true;
+}
+
 function generateInitialVirusCards() {
     let cards = [];
 
@@ -985,8 +998,8 @@ function teardownUIAfterPlayPhase() {
 }
 
 function setupUIForPlayPhase() {
-    gameState.activeImmuneCards = gameState.activeImmuneCards.filter(c => !c.oneshot);
-    gameState.activeImmuneCardsChanged = true;
+    checkImmuneCardExpiry();
+    updateGridView();
     updateActiveCardPanel();
     // Force a refresh of inactive cards to get handlers attached
     gameState.inactiveImmuneCardsChanged = true;
@@ -1363,7 +1376,8 @@ class ImmuneCard {
         this.art = this.constructor.art;
         this.smallart = this.constructor.smallart;
         this.needsInteraction = this.constructor.needsInteraction;
-        this.oneshot = this.constructor.oneshot;
+        this.expires = this.constructor.expires;
+        this.duration = this.constructor.duration;
         // NB: this is not implemented as not yet needed.
         this.causesStateChange = this.constructor.causesStateChange;
     }
@@ -1608,10 +1622,18 @@ Antiviral.kind = "Antiviral";
 Antiviral.art = "assets/cards/card-immune-antiviral.png";
 Antiviral.smallart = "assets/cards/small/card-immune-antiviral.png";
 Antiviral.needsInteraction = false;
-Antiviral.oneshot = false;
+Antiviral.expires = false;
+Antiviral.duration = 0;
 Antiviral.causesStateChange = false;
 
 class CytokinesBlue extends ImmuneCard {
+    constructor() {
+        super()
+        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_TIME_LIMIT)) {
+            this.expires = true;
+        }
+    }
+
     applyEffectsToLoc(row, column) {
         if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_COLOR_DIFFS)) {
             return this.applyCytokineProtection(row, column, this.getAffectedCellsForWeakCytokine);
@@ -1635,6 +1657,9 @@ class CytokinesBlue extends ImmuneCard {
     }
 
     getEffectCSSClass() {
+        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_TIME_LIMIT)) {
+            return "cytokine-blue-" + this.duration.toString();
+        }
         return "cytokine-blue";
     }
 
@@ -1659,10 +1684,18 @@ CytokinesBlue.kind = "Cytokines";
 CytokinesBlue.art = "assets/cards/card-immune-cytokines-blue.png";
 CytokinesBlue.smallart = "assets/cards/small/card-immune-cytokines-blue.png";
 CytokinesBlue.needsInteraction = true;
-CytokinesBlue.oneshot = false;
+CytokinesBlue.expires = false;
+CytokinesBlue.duration = 3; // only applies if we turn expires on
 CytokinesBlue.causesStateChange = false;
 
 class CytokinesRed extends ImmuneCard {
+    constructor() {
+        super()
+        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_TIME_LIMIT)) {
+            this.expires = true;
+        }
+    }
+
     applyEffectsToLoc(row, column) {
         if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_COLOR_DIFFS)) {
             return this.applyCytokineProtection(row, column, this.getAffectedCellsForStrongCytokine);
@@ -1686,6 +1719,9 @@ class CytokinesRed extends ImmuneCard {
     }
 
     getEffectCSSClass() {
+        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_TIME_LIMIT)) {
+            return "cytokine-red-" + this.duration.toString();
+        }
         return "cytokine-red";
     }
 
@@ -1710,10 +1746,18 @@ CytokinesRed.kind = "Cytokines";
 CytokinesRed.art = "assets/cards/card-immune-cytokines-red.png";
 CytokinesRed.smallart = "assets/cards/small/card-immune-cytokines-red.png";
 CytokinesRed.needsInteraction = true;
-CytokinesRed.oneshot = false;
+CytokinesRed.expires = false;
+CytokinesRed.duration = 3; // only applies if we turn expires on
 CytokinesRed.causesStateChange = false;
 
 class CytokinesOrange extends ImmuneCard {
+    constructor() {
+        super()
+        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_TIME_LIMIT)) {
+            this.expires = true;
+        }
+    }
+
     applyEffectsToLoc(row, column) {
         if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_COLOR_DIFFS)) {
             return this.applyCytokineProtection(row, column, this.getAffectedCellsForMediumCytokine);
@@ -1737,6 +1781,9 @@ class CytokinesOrange extends ImmuneCard {
     }
 
     getEffectCSSClass() {
+        if (isBetaFeatureEnabled(BetaFeature.CYTOKINE_TIME_LIMIT)) {
+            return "cytokine-orange-" + this.duration.toString();
+        }
         return "cytokine-orange";
     }
 
@@ -1761,7 +1808,8 @@ CytokinesOrange.kind = "Cytokines";
 CytokinesOrange.art = "assets/cards/card-immune-cytokines-orange.png";
 CytokinesOrange.smallart = "assets/cards/small/card-immune-cytokines-orange.png";
 CytokinesOrange.needsInteraction = true;
-CytokinesOrange.oneshot = false;
+CytokinesOrange.expires = false;
+CytokinesOrange.duration = 3; // only applies if we turn expires on
 CytokinesOrange.causesStateChange = false;
 
 class AntibodiesLiver extends ImmuneCard {
@@ -1796,7 +1844,8 @@ AntibodiesLiver.kind = "Antibodies";
 AntibodiesLiver.art = "assets/cards/card-immune-antibodies-liver.png";
 AntibodiesLiver.smallart = "assets/cards/small/card-immune-antibodies-liver.png";
 AntibodiesLiver.needsInteraction = true;
-AntibodiesLiver.oneshot = false;
+AntibodiesLiver.expires = false;
+AntibodiesLiver.duration = 0;
 AntibodiesLiver.causesStateChange = false;
 
 class AntibodiesLung extends ImmuneCard {
@@ -1831,7 +1880,8 @@ AntibodiesLung.kind = "Antibodies";
 AntibodiesLung.art = "assets/cards/card-immune-antibodies-lung.png";
 AntibodiesLung.smallart = "assets/cards/small/card-immune-antibodies-lung.png";
 AntibodiesLung.needsInteraction = true;
-AntibodiesLung.oneshot = false;
+AntibodiesLung.expires = false;
+AntibodiesLung.duration = 0;
 AntibodiesLung.causesStateChange = false;
 
 class AntibodiesIntestine extends ImmuneCard {
@@ -1866,13 +1916,16 @@ AntibodiesIntestine.kind = "Antibodies";
 AntibodiesIntestine.art = "assets/cards/card-immune-antibodies-intestine.png";
 AntibodiesIntestine.smallart = "assets/cards/small/card-immune-antibodies-intestine.png";
 AntibodiesIntestine.needsInteraction = true;
-AntibodiesIntestine.oneshot = false;
+AntibodiesIntestine.expires = false;
+AntibodiesIntestine.duration = 0;
 AntibodiesIntestine.causesStateChange = false;
 
 class TCellsLiver extends ImmuneCard {
     applyEffectsToLoc(row, column) {
         this.applyTCells(row, column);
     }
+
+    removeEffects() { }
 
     getAffectedCells(row, column) {
         if (this.canPlaceHere(row, column)) {
@@ -1894,12 +1947,16 @@ TCellsLiver.kind = "T Cells";
 TCellsLiver.art = "assets/cards/card-immune-t-cell-liver.png";
 TCellsLiver.smallart = "assets/cards/small/card-immune-t-cell-liver.png";
 TCellsLiver.needsInteraction = true;
-TCellsLiver.oneshot = true;
+TCellsLiver.expires = true;
+TCellsLiver.duration = 1;
+TCellsLiver.causesStateChange = false;
 
 class TCellsLung extends ImmuneCard {
     applyEffectsToLoc(row, column) {
         this.applyTCells(row, column);
     }
+
+    removeEffects() { }
 
     getAffectedCells(row, column) {
         if (this.canPlaceHere(row, column)) {
@@ -1921,13 +1978,16 @@ TCellsLung.kind = "T Cells";
 TCellsLung.art = "assets/cards/card-immune-t-cell-lung.png";
 TCellsLung.smallart = "assets/cards/small/card-immune-t-cell-lung.png";
 TCellsLung.needsInteraction = true;
-TCellsLung.oneshot = true;
+TCellsLung.expires = true;
+TCellsLung.duration = 1;
 TCellsLung.causesStateChange = false;
 
 class TCellsIntestine extends ImmuneCard {
     applyEffectsToLoc(row, column) {
         this.applyTCells(row, column);
     }
+
+    removeEffects() { }
 
     getAffectedCells(row, column) {
         if (this.canPlaceHere(row, column)) {
@@ -1949,7 +2009,8 @@ TCellsIntestine.kind = "T Cells";
 TCellsIntestine.art = "assets/cards/card-immune-t-cell-intestine.png";
 TCellsIntestine.smallart = "assets/cards/small/card-immune-t-cell-intestine.png";
 TCellsIntestine.needsInteraction = true;
-TCellsIntestine.oneshot = true;
+TCellsIntestine.expires = true;
+TCellsIntestine.duration = 1;
 TCellsIntestine.causesStateChange = false;
 
 class NucleotideSensing extends ImmuneCard {
@@ -1969,13 +2030,16 @@ class NucleotideSensing extends ImmuneCard {
         gameState.inactiveImmuneCardsChanged = true;
         updateInactiveCardPanel();
     }
+
+    removeEffects() { }
 }
 NucleotideSensing.title = "DNA/RNA Sensing";
 NucleotideSensing.kind = "Sensing";
 NucleotideSensing.art = "assets/cards/card-immune-nucleotide-sensing.png";
 NucleotideSensing.smallart = "assets/cards/small/card-immune-nucleotide-sensing.png";
 NucleotideSensing.needsInteraction = false;
-NucleotideSensing.oneshot = true;
+NucleotideSensing.expires = true;
+NucleotideSensing.duration = 1;
 NucleotideSensing.causesStateChange = false;
 
 let immuneCardClassPool = [
