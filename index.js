@@ -298,6 +298,9 @@ function checkVirusCardExpiry() {
     gameState.virusCards.forEach(function (card) {
         if (card.expires) {
             card.duration--;
+            if (card.duration == 0) {
+                card.removeEffects();
+            }
         }
     });
     gameState.virusCards = gameState.virusCards.filter(c => (!c.expires) || (c.duration > 0));
@@ -413,7 +416,7 @@ function mutateVirus() {
         newCard.applyEffects()
         gameState.virusCards.push(newCard);
         gameState.virusCardsChanged = true;
-        if (newCard.oneshot) {
+        if (newCard.expires) {
             toastMessage(`The virus mutated and played ${newCard.title}!`);
         } else {
             toastMessage(`The virus mutated and gained ${newCard.title}!`);
@@ -1257,6 +1260,8 @@ class BlueCytokineNeutralisation extends VirusCard {
     applyEffects() {
         this.searchAndRemoveRandomImmuneCardWithTitle("Blue Cytokines");
     }
+
+    removeEffects() { }
 }
 BlueCytokineNeutralisation.title = "Blue Cytokine Neutralisation";
 BlueCytokineNeutralisation.kind = "Cytokine Neutralisation";
@@ -1269,6 +1274,8 @@ class OrangeCytokineNeutralisation extends VirusCard {
     applyEffects() {
         this.searchAndRemoveRandomImmuneCardWithTitle("Orange Cytokines");
     }
+
+    removeEffects() { }
 }
 OrangeCytokineNeutralisation.title = "Orange Cytokine Neutralisation";
 OrangeCytokineNeutralisation.kind = "Cytokine Neutralisation";
@@ -1281,6 +1288,8 @@ class RedCytokineNeutralisation extends VirusCard {
     applyEffects() {
         this.searchAndRemoveRandomImmuneCardWithTitle("Red Cytokines");
     }
+
+    removeEffects() { }
 }
 RedCytokineNeutralisation.title = "Red Cytokine Neutralisation";
 RedCytokineNeutralisation.kind = "Cytokine Neutralisation";
@@ -1293,6 +1302,8 @@ class AntibodiesEscapeLiver extends VirusCard {
     applyEffects() {
         this.searchAndRemoveAllImmuneCardsWithTitle("Liver Antibodies");
     }
+
+    removeEffects() { }
 }
 AntibodiesEscapeLiver.title = "Antibodies Escape Liver";
 AntibodiesEscapeLiver.kind = "Antibodies Escape";
@@ -1305,6 +1316,8 @@ class AntibodiesEscapeLung extends VirusCard {
     applyEffects() {
         this.searchAndRemoveAllImmuneCardsWithTitle("Lung Antibodies");
     }
+
+    removeEffects() { }
 }
 AntibodiesEscapeLung.title = "Antibodies Escape Lung";
 AntibodiesEscapeLung.kind = "Antibodies Escape";
@@ -1317,6 +1330,8 @@ class AntibodiesEscapeIntestine extends VirusCard {
     applyEffects() {
         this.searchAndRemoveAllImmuneCardsWithTitle("Intestine Antibodies");
     }
+
+    removeEffects() { }
 }
 AntibodiesEscapeIntestine.title = "Antibodies Escape Intestine";
 AntibodiesEscapeIntestine.kind = "Antibodies Escape";
