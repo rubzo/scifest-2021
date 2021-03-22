@@ -8,7 +8,7 @@ let MAX_MUTATION_ATTEMPTS = 2;
 let STATE_TRANSITION_WAIT = 4000; // Make super slow for now, optimise later.
 
 // Game presentation related vars
-let gridDivs = [];
+let gridDivs = null;
 
 // General helpers
 function shuffle(ar) {
@@ -445,11 +445,11 @@ function setupGame(hardMode) {
     gameState = {
         grid: generateGameStateGrid(),
         virusCards: [],
-        virusCardsChanged: false,
+        virusCardsChanged: true,
         activeImmuneCards: [],
         inactiveImmuneCards: [],
-        activeImmuneCardsChanged: false,
-        inactiveImmuneCardsChanged: false,
+        activeImmuneCardsChanged: true,
+        inactiveImmuneCardsChanged: true,
         state: PlayStates.WAITING_TO_START,
         playerDraftPool: [],
         numCardsSelectedInDraftPool: 0,
@@ -690,19 +690,36 @@ function getInteractiveDivForCard(card, isActiveCard) {
     return div;
 }
 
-function showLossScreen() {
-    $("#chooseCardMsg").text("The virus has spread through the entire tissue - you've lost!");
+function showEndScreen(msg) {
+    $("#chooseCardMsg").empty();
+    let msgDiv = $(`<div>${msg}</div>`);
+
+    let resetButton = $('<div class="button marginButton">Reset Game</div>');
+    $(resetButton).click(resetGame);
+
+    let learnMoreButton = $('<div class="button marginButton">Learn More!</div>');
+    $(learnMoreButton).click(function () {
+        window.location.href = "http://lab.tevelthuis.com/game-virus-vs-host";
+    });
+
+    $("#chooseCardMsg").append(msgDiv);
+    $("#chooseCardMsg").append(resetButton);
+    $("#chooseCardMsg").append(learnMoreButton);
+
     $("#chooseCardPanel").empty();
     $("#chooseCardDisplay").addClass("show");
+}
+
+function showLossScreen() {
+    showEndScreen("The virus has spread through the entire tissue - you've lost!");
 }
 
 function showWinScreen() {
-    $("#chooseCardMsg").text("You've contained the virus - you've won!");
-    $("#chooseCardPanel").empty();
-    $("#chooseCardDisplay").addClass("show");
+    showEndScreen("You've contained the virus - you've won!");
 }
 
-function generateGrid(cellsGridDiv, tissueIndex) {
+function generateGridForTissue(cellsGridDiv, tissueIndex) {
+    cellsGridDiv.empty();
     for (let row = 0; row < TISSUE_HEIGHT; row++) {
         let currentRow = $('<div class="tissueCellRow"></div>');
         cellsGridDiv.append(currentRow);
@@ -1038,6 +1055,15 @@ function alertReplicationSpeedChanged() {
     }, 10000);
 }
 
+function resetGame() {
+    $("#chooseCardMsg").empty();
+    $("#chooseCardDisplay").removeClass("show");
+    $("#chooseCardMsg").off("click");
+    $("#introText").removeClass("gone");
+    $("#wholeGame").addClass("gone");
+    generateCompleteGrid();
+    switchPlayState(PlayStates.WAITING_TO_START);
+}
 
 function hookupDifficultyButtons() {
     $("#startNormalButton").click(function () {
@@ -1070,12 +1096,16 @@ function hookupBetaFeaturePanel() {
     });
 }
 
+function generateCompleteGrid() {
+    gridDivs = [];
+    generateGridForTissue($("#liverCells"), 0, "Liver");
+    generateGridForTissue($("#lungCells"), 1, "Lung");
+    generateGridForTissue($("#intestineCells"), 2, "Intestine");
+}
+
 // OnLoad
 function onLoad() {
-    generateGrid($("#liverCells"), 0, "Liver");
-    generateGrid($("#lungCells"), 1, "Lung");
-    generateGrid($("#intestineCells"), 2, "Intestine");
-
+    generateCompleteGrid();
     hookupDifficultyButtons();
     hookupBetaFeaturePanel();
 }

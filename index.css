@@ -220,6 +220,11 @@ a:visited {
     box-shadow: 3px 3px 0 0 rgb(6, 167, 6);
 }
 
+.marginButton {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
 .cancel {
     background-color: rgb(223, 39, 39);
     box-shadow: 3px 3px 0 0 rgb(250, 53, 53);
