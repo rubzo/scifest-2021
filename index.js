@@ -613,7 +613,11 @@ handlers[PlayStates.VIRUS_MOVES_DOWN_READY] = function () {
 
 handlers[PlayStates.VIRUS_MOVES_DOWN_ACTIVE] = function () {
     if (gameState.replicationAttempts == gameState.replicationSpeed) {
-        switchPlayState(PlayStates.VIRUS_MOVES_DOWN_DONE);
+        if (virusHasWon()) {
+            switchPlayState(PlayStates.BODY_DEFEATED);
+        } else {
+            switchPlayState(PlayStates.VIRUS_MOVES_DOWN_DONE);
+        }
     } else {
         if (virusHasWon()) {
             switchPlayState(PlayStates.BODY_DEFEATED);
