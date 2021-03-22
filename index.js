@@ -1941,13 +1941,11 @@ class NucleotideSensing extends ImmuneCard {
         let randomCytokineCard = new randomCytokineClass();
         gameState.inactiveImmuneCards.push(randomCytokineCard);
 
-        // Get an extra card if we're not on hard mode!
-        if (!gameState.hardMode) {
-            let otherPool = immuneCardClassPool.filter(cl => cl.name !== "DNA/RNA Sensing");
-            let randomOtherClass = randomElement(otherPool);
-            let randomOtherCard = new randomOtherClass();
-            gameState.inactiveImmuneCards.push(randomOtherCard);
-        }
+        // Get a random other card (anything but NucleotideSensing)
+        let otherPool = immuneCardClassPool.filter(cl => cl.name !== "DNA/RNA Sensing");
+        let randomOtherClass = randomElement(otherPool);
+        let randomOtherCard = new randomOtherClass();
+        gameState.inactiveImmuneCards.push(randomOtherCard);
 
         gameState.inactiveImmuneCardsChanged = true;
         updateInactiveCardPanel();
