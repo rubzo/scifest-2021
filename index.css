@@ -471,7 +471,7 @@ a:visited {
     padding: 16px; /* Padding */
     position: fixed; /* Sit on top of the screen */
     z-index: 6;
-    top: 20%;
+    top: 12%;
 
     box-shadow: 0 12px 20px 0 rgba(0, 0, 0, 0.5);
 }
@@ -484,12 +484,12 @@ a:visited {
 
 @-webkit-keyframes cardDisplayFadein {
   from {top: -50%; opacity: 0;}
-  to {top: 20%; opacity: 1;}
+  to {top: 12%; opacity: 1;}
 }
 
 @keyframes cardDisplayFadein {
   from {top: -50%; opacity: 0;}
-  to {top: 20%; opacity: 1;}
+  to {top: 12%; opacity: 1;}
 }
 
 .cardPanelTitle {
