@@ -582,10 +582,10 @@ handlers[PlayStates.PLAYER_DRAW_PHASE_DONE] = function () {
 handlers[PlayStates.PLAYER_PLAY_PHASE_READY] = function () {
     if (isBetaFeatureEnabled(BetaFeature.PLAY_2_PER_TURN)) {
         toastMessage("Play up to two immune cards!");
-        $("#endTurnButton").text("Stop playing cards - 2 cards remaining");
+        $("#endTurnButton").text("End my turn - 2 cards remaining");
     } else {
         toastMessage("Play immune cards!");
-        $("#endTurnButton").text("Stop playing cards");
+        $("#endTurnButton").text("End my turn");
     }
     gameState.numCardsPlayedThisTurn = 0;
     switchPlayState(PlayStates.PLAYER_PLAY_PHASE_WAITING);
@@ -914,7 +914,7 @@ function cardWasPlayed() {
     gameState.numCardsPlayedThisTurn++;
     if (isBetaFeatureEnabled(BetaFeature.PLAY_2_PER_TURN)) {
         // We sneakily get away with this right now
-        $("#endTurnButton").text("Stop playing cards - 1 card remaining");
+        $("#endTurnButton").text("End my turn - 1 card remaining");
         if (gameState.numCardsPlayedThisTurn == 2) {
             toastMessage("Turn is over!");
             teardownUIAfterPlayPhase();
