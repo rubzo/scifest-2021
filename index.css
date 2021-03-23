@@ -437,6 +437,12 @@ a:visited {
   /*-webkit-animation: fadein 0.5s, fadeout 0.5s 1.7s;*/
 }
 
+.snackbar.showLong {
+  visibility: visible;
+  animation: fadein 0.5s, fadeout 0.5s 4.6s;
+  /*-webkit-animation: fadein 0.5s, fadeout 0.5s 1.7s;*/
+}
+
 /* Animations to fade the snackbar in and out */
 /*
 @-webkit-keyframes fadein {

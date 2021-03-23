@@ -437,9 +437,9 @@ function mutateVirus() {
         gameState.virusCards.push(newCard);
         gameState.virusCardsChanged = true;
         if (newCard.expires) {
-            toastMessage(`The virus mutated and played ${newCard.title}!`);
+            toastMessage(`The virus mutated and played ${newCard.title}!`, 5000);
         } else {
-            toastMessage(`The virus mutated and gained ${newCard.title}!`);
+            toastMessage(`The virus mutated and gained ${newCard.title}!`, 5000);
         }
     } else {
         // Remove a card...
@@ -448,7 +448,7 @@ function mutateVirus() {
         gameState.virusCards = newVirusCards;
         gameState.virusCardsChanged = true;
         cardToRemove.removeEffects();
-        toastMessage(`The virus mutated and lost ${cardToRemove.title}!`);
+        toastMessage(`The virus mutated and lost ${cardToRemove.title}!`, 5000);
     }
     updateUI();
 }
@@ -519,9 +519,20 @@ function checkIfFinishedDrafting() {
 // State handlers
 //
 let handlers = {};
-function continueBasedOnCurrentState() {
+function continueBasedOnCurrentState(expectedState) {
+    if (expectedState != undefined && expectedState != gameState.state) {
+        // DEBUG: uncomment to diagnose timing issues
+        //console.log("Expected: " + expectedState.toString() + " actually: " + gameState.state.toString());
+        return;
+    }
     if (handlers[gameState.state] != undefined) {
         handlers[gameState.state]();
+    }
+}
+
+function createStateClosure(state) {
+    return function () {
+        continueBasedOnCurrentState(state);
     }
 }
 
@@ -529,7 +540,9 @@ function finishedHandlingState(delay) {
     if (delay === undefined) {
         delay = STATE_TRANSITION_WAIT;
     }
-    setTimeout(continueBasedOnCurrentState, delay);
+    // DEBUG: uncomment to diagnose timing issues
+    //console.log("timing out to: " + gameState.state.toString() + " in " + delay.toString());
+    setTimeout(createStateClosure(gameState.state), delay);
 }
 
 handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_READY] = function () {
@@ -579,7 +592,8 @@ handlers[PlayStates.PLAYER_DRAW_PHASE_READY] = function () {
     updateChooseCardPanel();
     showChooseCardPanel();
     switchPlayState(PlayStates.PLAYER_DRAW_PHASE_SHOWING_CARDS);
-    finishedHandlingState();
+    // I think it's a bug to call this?
+    //finishedHandlingState();
 }
 
 handlers[PlayStates.PLAYER_DRAW_PHASE_DONE] = function () {
@@ -598,7 +612,8 @@ handlers[PlayStates.PLAYER_PLAY_PHASE_READY] = function () {
     gameState.numCardsPlayedThisTurn = 0;
     switchPlayState(PlayStates.PLAYER_PLAY_PHASE_WAITING);
     setupUIForPlayPhase();
-    finishedHandlingState();
+    // I think it's a bug to call this?
+    //finishedHandlingState();
 }
 
 handlers[PlayStates.PLAYER_PLAY_PHASE_DONE] = function () {
@@ -619,7 +634,7 @@ handlers[PlayStates.VIRUS_MUTATION_READY] = function () {
 handlers[PlayStates.VIRUS_MUTATION_ACTIVE] = function () {
     mutateVirus();
     switchPlayState(PlayStates.VIRUS_MUTATION_DONE);
-    finishedHandlingState(5000);
+    finishedHandlingState(6000);
 }
 
 handlers[PlayStates.VIRUS_MUTATION_DONE] = function () {
@@ -666,7 +681,7 @@ handlers[PlayStates.VIRUS_MOVES_DOWN_ACTIVE] = function () {
 handlers[PlayStates.VIRUS_MOVES_DOWN_DONE] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_READY);
-    finishedHandlingState();
+    finishedHandlingState(500);
 }
 
 handlers[PlayStates.VIRUS_DEFEATED] = function () {
@@ -1073,12 +1088,13 @@ function removeGridListeners() {
 }
 
 function toastMessage(msg, dur) {
+    let snackbar = $(`<div class="snackbar">${msg}</div>`);
     if (dur === undefined) {
         dur = 2900;
+        snackbar.addClass("show");
+    } else {
+        snackbar.addClass("showLong");
     }
-    // TODO: if dur is changed, we need to change CSS properties
-    let snackbar = $(`<div class="snackbar">${msg}</div>`);
-    snackbar.addClass("show");
     $("#snackbarContainer").append(snackbar);
     setTimeout(function () {
         snackbar.remove();
