@@ -409,7 +409,7 @@ a:visited {
     padding: 20px; /* Padding */
     position: fixed; /* Sit on top of the screen */
     z-index: 10;
-    top: 80%;
+    top: 50%;
     box-shadow: 0 12px 20px 0 rgba(0, 0, 0, 0.5);
 }
 
@@ -429,13 +429,13 @@ a:visited {
 */
 
 @keyframes fadein {
-  from {top: 100%; opacity: 0;}
-  to {top: 80%; opacity: 1;}
+  from {top: 0%; opacity: 0;}
+  to {top: 50%; opacity: 1;}
 }
 
 @keyframes fadeout {
-  from {top: 80%; opacity: 1;}
-  to {top: 100%; opacity: 0;}
+  from {top: 50%; opacity: 1;}
+  to {top: 0%; opacity: 0;}
 }
 
 /* --- */
@@ -481,7 +481,6 @@ a:visited {
 
 .cardPanelTitle {
     font-size: large;
-    font-variant: small-caps;
 }
 
 .highlight {
