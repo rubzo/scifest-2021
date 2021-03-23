@@ -126,6 +126,10 @@ a:visited {
     border: solid 2px #c99e67;
 }
 
+.tissueCellColumnBlack {
+    border: solid 2px black;
+}
+
 .virus {
     background-image: url("assets/virus.png");
     background-size: 80%;
@@ -505,5 +509,9 @@ a:visited {
 }
 
 .tropismPresent {
-    background-color: rgb(226, 215, 255);
+    border: solid 2px red;
+}
+
+.tropismNotPresent {
+    border: solid 2px grey;
 }

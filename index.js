@@ -761,25 +761,26 @@ function updateGridView() {
         for (let column = 0; column < ALL_TISSUE_WIDTH; column++) {
             let div = gridDivs[row][column];
             div.removeClass();
-            let tissueName = "";
+            div.addClass("tissueCellColumn");
             if (Math.floor(column / TISSUE_WIDTH) == 0) {
-                tissueName = "Liver";
                 if (liverTropismPresent) {
                     div.addClass("tropismPresent");
+                } else {
+                    div.addClass("tropismNotPresent");
                 }
             } else if (Math.floor(column / TISSUE_WIDTH) == 1) {
-                tissueName = "Lung";
                 if (lungTropismPresent) {
                     div.addClass("tropismPresent");
+                } else {
+                    div.addClass("tropismNotPresent");
                 }
             } else {
-                tissueName = "Intestine";
                 if (intestineTropismPresent) {
                     div.addClass("tropismPresent");
+                } else {
+                    div.addClass("tropismNotPresent");
                 }
             }
-            div.addClass("tissueCellColumn");
-            div.addClass(`tissueCellColumn${tissueName}`);
             if (gameState.grid[row][column].isInfected()) {
                 gridDivs[row][column].addClass("virus");
             } else if (gameState.grid[row][column].isProtected()) {
