@@ -69,6 +69,14 @@ function setBetaFeaturesFromUI() {
 function isBetaFeatureEnabled(feature) {
     return betaFeatures[feature];
 }
+
+function forceOnBetaFeature(feature) {
+    betaFeatures[feature] = true;
+}
+
+function forceOffBetaFeature(feature) {
+    betaFeatures[feature] = false;
+}
 //
 // -- END BETA FEATURES --
 //
@@ -1098,6 +1106,8 @@ function resetGame() {
 function hookupDifficultyButtons() {
     $("#startNormalButton").click(function () {
         setBetaFeaturesFromUI();
+        // always turn off CYTOKINE_TIME_LIMIT on normal mode
+        forceOffBetaFeature(BetaFeature.CYTOKINE_TIME_LIMIT);
         setupGame(false /* normal */);
         $("#introText").addClass("gone")
         $("#wholeGame").removeClass("gone");
@@ -1108,6 +1118,8 @@ function hookupDifficultyButtons() {
 
     $("#startHardButton").click(function () {
         setBetaFeaturesFromUI();
+        // always turn on CYTOKINE_TIME_LIMIT on hard mode
+        forceOnBetaFeature(BetaFeature.CYTOKINE_TIME_LIMIT);
         setupGame(true /* hard */);
         $("#introText").addClass("gone")
         $("#wholeGame").removeClass("gone");
