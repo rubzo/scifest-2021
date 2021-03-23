@@ -42,6 +42,19 @@ a:visited {
     min-width: 800px;
 }
 
+.justifiedIntroText {
+    width: 1200px;
+    margin: 0 auto;
+    text-align: justify;
+    border: 2px ridge grey;
+    border-radius: 16px;
+    padding: 2%;
+}
+
+.title {
+    margin-top: 2%
+}
+
 #gameView {
     width: 1200px;
     height: 600px;
