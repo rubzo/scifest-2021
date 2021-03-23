@@ -883,11 +883,9 @@ function updateCardPanels() {
 }
 
 function updateOtherData() {
-    let newString = ("🧬".repeat(gameState.replicationSpeed)) + `(${gameState.replicationSpeed}`;
+    let newString = gameState.replicationSpeed.toString();
     if (gameState.oldReplicationSpeed !== null) {
-        newString += `, was ${gameState.oldReplicationSpeed})`;
-    } else {
-        newString += ")";
+        newString += `, was ${gameState.oldReplicationSpeed}`;
     }
     $("#virusReplicationSpeed").text(newString);
 }
