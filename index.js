@@ -1115,6 +1115,10 @@ function resetGame() {
     $("#chooseCardMsg").off("click");
     $("#introText").removeClass("gone");
     $("#wholeGame").addClass("gone");
+    // These might be still active
+    $("#controlButtons").addClass("gone");
+    $("#endTurnButton").off("click");
+
     generateCompleteGrid();
     switchPlayState(PlayStates.WAITING_TO_START);
 }
