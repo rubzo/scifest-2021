@@ -754,10 +754,20 @@ function showEndScreen(msg) {
 
 function showLossScreen() {
     showEndScreen("The virus has spread through the entire tissue - you've lost!");
+    if (gameState.hardMode) {
+        plausible('LoseHardGame');
+    } else {
+        plausible('LoseNormalGame');
+    }
 }
 
 function showWinScreen() {
     showEndScreen("You've contained the virus - you've won!");
+    if (gameState.hardMode) {
+        plausible('WinHardGame');
+    } else {
+        plausible('WinNormalGame');
+    }
 }
 
 function generateGridForTissue(cellsGridDiv, tissueIndex) {
@@ -1110,6 +1120,7 @@ function alertReplicationSpeedChanged() {
 }
 
 function resetGame() {
+    plausible('ResetGame');
     $("#chooseCardMsg").empty();
     $("#chooseCardDisplay").removeClass("show");
     $("#chooseCardMsg").off("click");
@@ -1132,6 +1143,7 @@ function hookupDifficultyButtons() {
         $("#restartLink").removeClass("gone");
         $("#introText").addClass("gone")
         $("#wholeGame").removeClass("gone");
+        plausible('StartNormalGame');
         updateUI();
         switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_READY);
         finishedHandlingState(500);
@@ -1145,6 +1157,7 @@ function hookupDifficultyButtons() {
         $("#restartLink").removeClass("gone");
         $("#introText").addClass("gone")
         $("#wholeGame").removeClass("gone");
+        plausible('StartHardGame');
         updateUI();
         switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_READY);
         finishedHandlingState(500);
