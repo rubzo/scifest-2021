@@ -1129,6 +1129,7 @@ function hookupDifficultyButtons() {
         // always turn off CYTOKINE_TIME_LIMIT on normal mode
         forceOffBetaFeature(BetaFeature.CYTOKINE_TIME_LIMIT);
         setupGame(false /* normal */);
+        $("#restartLink").removeClass("gone");
         $("#introText").addClass("gone")
         $("#wholeGame").removeClass("gone");
         updateUI();
@@ -1141,6 +1142,7 @@ function hookupDifficultyButtons() {
         // always turn on CYTOKINE_TIME_LIMIT on hard mode
         forceOnBetaFeature(BetaFeature.CYTOKINE_TIME_LIMIT);
         setupGame(true /* hard */);
+        $("#restartLink").removeClass("gone");
         $("#introText").addClass("gone")
         $("#wholeGame").removeClass("gone");
         updateUI();
