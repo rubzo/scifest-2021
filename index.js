@@ -1207,11 +1207,26 @@ function generateCompleteGrid() {
     generateGridForTissue($("#intestineCells"), 2, "Intestine");
 }
 
+let emshrinkened = false;
+function hookupEmshrinkenButton() {
+    $("#emshrinken").click(function () {
+        if (!emshrinkened) {
+            $("#gameviewCSS").replaceWith($('<link id="gameviewCSS" rel="stylesheet" href="gameview-small.css">'));
+            $("#emshrinken").text("Normal View");
+        } else {
+            $("#gameviewCSS").replaceWith($('<link id="gameviewCSS" rel="stylesheet" href="gameview-normal.css">'));
+            $("#emshrinken").text("Compact View");
+        }
+        emshrinkened = !emshrinkened;
+    });
+}
+
 // OnLoad
 function onLoad() {
     generateCompleteGrid();
     hookupDifficultyButtons();
     hookupBetaFeaturePanel();
+    hookupEmshrinkenButton();
 }
 
 $(document).ready(onLoad);

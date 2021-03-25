@@ -5,6 +5,7 @@
     <title>The Infection Game - Virus vs Host</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="index.css">
+    <link id="gameviewCSS" rel="stylesheet" href="gameview-normal.css">
     </link>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script async defer data-domain="rubzo.github.io/scifest-2021" src="https://plausible.io/js/plausible.js"></script>
@@ -96,6 +97,8 @@
 
     <div id="wholeGame" class="gone">
 
+        <div id="emshrinken" class="big">Compact View</div>
+
         <div class="panel">
             <div class="cardPanelTitle">
                 Virus Traits
@@ -115,7 +118,7 @@
             <div id="intestineCells" class="tissueCellGrid"></div>
         </div>
 
-        <div style="height: 80px"></div>
+        <div id="gameViewOffsetter"></div>
 
         <div id="boardText" class="gone">
         </div>
