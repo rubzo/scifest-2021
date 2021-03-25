@@ -955,6 +955,10 @@ function cardWasPlayed() {
             teardownUIAfterPlayPhase();
         }
     }
+    // Automatically end the turn if there are no more cards to play.
+    if (gameState.inactiveImmuneCards.length == 0) {
+        teardownUIAfterPlayPhase();
+    }
 }
 
 function leaveInteractiveMode() {
