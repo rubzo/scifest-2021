@@ -6,6 +6,7 @@ let NUM_CARDS_TO_DRAFT_FROM_PER_TURN = 3;
 let NUM_CARDS_TO_SELECT_IN_DRAFT_PER_TURN = 2;
 let MAX_MUTATION_ATTEMPTS = 2;
 let STATE_TRANSITION_WAIT = 4000; // Make super slow for now, optimise later.
+let VIRUS_SPREAD_SPEED_MS = 400;
 
 // Game presentation related vars
 let gridDivs = null;
@@ -548,7 +549,7 @@ function finishedHandlingState(delay) {
 handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_READY] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_ACTIVE);
-    finishedHandlingState(500);
+    finishedHandlingState(VIRUS_SPREAD_SPEED_MS);
 }
 
 handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_ACTIVE] = function () {
@@ -569,13 +570,13 @@ handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_ACTIVE] = function () {
             updateUI();
         }
     }
-    finishedHandlingState(500);
+    finishedHandlingState(VIRUS_SPREAD_SPEED_MS);
 }
 
 handlers[PlayStates.VIRUS_MOVES_SIDEWAYS_DONE] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.PLAYER_DRAW_PHASE_READY);
-    finishedHandlingState(500);
+    finishedHandlingState(VIRUS_SPREAD_SPEED_MS);
 }
 
 handlers[PlayStates.PLAYER_DRAW_PHASE_READY] = function () {
@@ -646,7 +647,7 @@ handlers[PlayStates.VIRUS_MOVES_DOWN_READY] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.VIRUS_MOVES_DOWN_ACTIVE);
     toastMessage("The virus is trying to replicate and spread!");
-    finishedHandlingState(700);
+    finishedHandlingState(VIRUS_SPREAD_SPEED_MS);
 }
 
 handlers[PlayStates.VIRUS_MOVES_DOWN_ACTIVE] = function () {
@@ -675,13 +676,13 @@ handlers[PlayStates.VIRUS_MOVES_DOWN_ACTIVE] = function () {
             updateUI();
         }
     }
-    finishedHandlingState(700);
+    finishedHandlingState(VIRUS_SPREAD_SPEED_MS);
 }
 
 handlers[PlayStates.VIRUS_MOVES_DOWN_DONE] = function () {
     gameState.replicationAttempts = 0;
     switchPlayState(PlayStates.VIRUS_MOVES_SIDEWAYS_READY);
-    finishedHandlingState(500);
+    finishedHandlingState(VIRUS_SPREAD_SPEED_MS);
 }
 
 handlers[PlayStates.VIRUS_DEFEATED] = function () {
