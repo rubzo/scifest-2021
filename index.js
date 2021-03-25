@@ -963,6 +963,14 @@ function leaveInteractiveMode() {
     removeGridListeners();
     updateGridView();
 
+    // Make the card following the cursor vanish!
+    $("#floatingCardFollower").css({
+        left: 0,
+        top: 0,
+    });
+    $("#floatingCardFollower").addClass("gone");
+    $(document).off("mousemove");
+
     // Disable the cancel button
     $("#cancelButton").addClass("gone");
     $("#cancelSpacer").addClass("gone");
@@ -971,9 +979,23 @@ function leaveInteractiveMode() {
     switchPlayState(PlayStates.PLAYER_PLAY_PHASE_WAITING);
 }
 
+
 function enterInteractiveMode(gameCard, uiCard) {
     $("#boardText").text("Click on a cell to play the card!");
     $("#boardText").removeClass("gone");
+
+    // Make the card follow the cursor!
+    $("#floatingCardFollower").css({
+        "background-image": `url('${gameCard.smallart}')`
+    });
+    $("#floatingCardFollower").addClass("card");
+    $(document).on("mousemove", function (e) {
+        $("#floatingCardFollower").removeClass("gone");
+        $("#floatingCardFollower").css({
+            left: e.pageX + 10,
+            top: e.pageY + 10,
+        });
+    });
 
     gameState.interactionCard = gameCard;
     addGridListeners();

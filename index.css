@@ -520,3 +520,8 @@ a:visited {
 .tropismNotPresent {
     border: solid 2px grey;
 }
+
+#floatingCardFollower {
+    position: absolute;
+    z-index: 20;
+}
