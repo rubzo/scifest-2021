@@ -1212,10 +1212,10 @@ function hookupEmshrinkenButton() {
     $("#emshrinken").click(function () {
         if (!emshrinkened) {
             $("#gameviewCSS").replaceWith($('<link id="gameviewCSS" rel="stylesheet" href="gameview-small.css">'));
-            $("#emshrinken").text("Normal View");
+            $("#emshrinken").text("Make board larger");
         } else {
             $("#gameviewCSS").replaceWith($('<link id="gameviewCSS" rel="stylesheet" href="gameview-normal.css">'));
-            $("#emshrinken").text("Compact View");
+            $("#emshrinken").text("Make board smaller");
         }
         emshrinkened = !emshrinkened;
     });

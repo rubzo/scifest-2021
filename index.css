@@ -359,11 +359,12 @@ a:visited {
 }
 
 #emshrinken {
-    position: absolute;
-    top: 48%;
+    margin: 0 auto;
+    width: 20%;
+    text-align: center;
     background-color:green;
-    margin-left: 4px;
     padding: 3px;
+    margin-bottom: 5px;
     border-radius: 4px;
     cursor: default;
     font-size: small;
